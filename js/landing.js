@@ -82,26 +82,17 @@ const Landing = {
   /* Statistik + counter animasi */
   isStats() {
     const absen = Store.get("absen");
-    const masuk = Store.get("kasMasuk");
-    const keluar = Store.get("kasKeluar");
     const hariIni = Utils.hariIni();
     const hadir = absen.filter((a) => a.tanggal === hariIni && a.status === "hadir").length;
-    const saldo =
-      masuk.reduce((s, t) => s + Number(t.jumlah || 0), 0) -
-      keluar.reduce((s, t) => s + Number(t.jumlah || 0), 0);
 
     const target = {
       siswa: Store.get("siswa").length,
       mapel: Store.get("pelajaran").length,
       hadir,
     };
-    const elKas = document.querySelector('[data-counter="kas"]');
-    elKas.dataset.saldo = saldo;
 
     document.querySelectorAll("[data-counter]").forEach((el) => {
-      const key = el.dataset.counter;
-      const akhir = key === "kas" ? Math.abs(saldo) : target[key] || 0;
-      el.dataset.akhir = akhir;
+      el.dataset.akhir = target[el.dataset.counter] || 0;
     });
   },
 
@@ -125,20 +116,12 @@ const Landing = {
   hitung(scope) {
     scope.querySelectorAll("[data-counter]").forEach((el) => {
       const akhir = Number(el.dataset.akhir || 0);
-      const isKas = el.dataset.counter === "kas";
       const durasi = 1100;
       const mulai = performance.now();
       const tick = (now) => {
         const t = Math.min((now - mulai) / durasi, 1);
         const eased = 1 - Math.pow(1 - t, 3); /* ease-out */
-        const nilai = Math.round(akhir * eased);
-        if (isKas) {
-          const saldo = Number(el.dataset.saldo || 0);
-          el.textContent = Utils.formatRupiah(saldo < 0 ? -nilai : nilai);
-          if (saldo < 0) el.textContent = "-" + el.textContent;
-        } else {
-          el.textContent = nilai;
-        }
+        el.textContent = Math.round(akhir * eased);
         if (t < 1) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);

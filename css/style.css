@@ -1,24 +1,133 @@
-/* ===== KelasKu — main styles ===== */
+/* ===== KelasKu — main styles (tema cream profesional, terang + gelap) ===== */
 :root {
-  color-scheme: dark;
-  --bg: #0f1526;
-  --surface: #1b2145;
-  --border: #2c3460;
-  --text: #e2e8f0;
-  --text-muted: #94a3b8;
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
-  --primary-soft: rgba(99, 102, 241, 0.16);
-  --success: #34d399;
-  --success-soft: rgba(16, 185, 129, 0.16);
-  --danger: #f87171;
-  --danger-soft: rgba(239, 68, 68, 0.16);
-  --warning: #fbbf24;
-  --warning-soft: rgba(245, 158, 11, 0.16);
-  --info-soft: rgba(56, 189, 248, 0.16);
+  color-scheme: light;
+  /* dasar */
+  --bg: #f6f1e7;
+  --surface: #ffffff;
+  --surface-2: #fffdf9;
+  --border: #e6dcc9;
+  --text: #3d3225;
+  --text-med: #5c4a35;
+  --text-muted: #8a7b66;
+  --text-soft: #b3a58c;
+  --on-primary: #ffffff;
+  /* aksen caramel */
+  --primary: #9f6a44;
+  --primary-hover: #85552f;
+  --primary-deep: #8a5a38;
+  --accent2: #c07b55;
+  --primary-soft: rgba(159, 106, 68, 0.13);
+  --primary-border: rgba(159, 106, 68, 0.3);
+  --primary-border-soft: rgba(159, 106, 68, 0.14);
+  --primary-border-strong: rgba(159, 106, 68, 0.45);
+  /* semantik */
+  --success: #2f8f5b;
+  --success-soft: rgba(47, 143, 91, 0.14);
+  --danger: #c2453d;
+  --danger-hover: #a63a33;
+  --danger-soft: rgba(194, 69, 61, 0.12);
+  --danger-border: rgba(194, 69, 61, 0.3);
+  --warning: #b7791f;
+  --warning-soft: rgba(183, 121, 31, 0.14);
+  --info: #0e7490;
+  --info-soft: rgba(14, 116, 144, 0.13);
+  /* gradien */
+  --grad-primary: linear-gradient(135deg, #8a5a38, #a9744f 60%, #b8865f);
+  --grad-text: linear-gradient(90deg, #9f6a44, #c07b55);
+  --grad-welcome: linear-gradient(120deg, #7a5636, #9c6b48);
+  --welcome-text: #f0e4d2;
+  --welcome-accent: #f6d186;
+  /* landing khusus */
+  --nav-bg: rgba(255, 253, 248, 0.78);
+  --card-glass: rgba(255, 255, 255, 0.72);
+  --chip-bg: rgba(255, 255, 255, 0.78);
+  --ghost-bg: rgba(255, 255, 255, 0.72);
+  --marquee-bg: #fbf7f0;
+  --footer-bg: rgba(255, 255, 255, 0.55);
+  --input-bg: #faf6ee;
+  --th-bg: #faf6ee;
+  --row-hover: rgba(159, 106, 68, 0.05);
+  --spotlight: rgba(159, 106, 68, 0.12);
+  --float-color: rgba(159, 106, 68, 0.55);
+  --star-color: #d9c29a;
+  --blob-1: #d9a468;
+  --blob-2: #d6b587;
+  --blob-3: #c99a5f;
+  --hero-bg:
+    radial-gradient(ellipse 55% 45% at 18% 12%, rgba(201, 155, 106, 0.26), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 20%, rgba(214, 178, 137, 0.24), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 60% 100%, rgba(190, 146, 102, 0.18), transparent 60%),
+    linear-gradient(165deg, #fbf7f0 0%, #f5eddf 55%, #efe3cd 100%);
+  /* lapisan & bayangan */
+  --backdrop: rgba(60, 45, 25, 0.4);
+  --login-overlay: rgba(246, 241, 231, 0.6);
+  --shadow: 0 1px 2px rgba(92, 62, 32, 0.05), 0 4px 14px rgba(92, 62, 32, 0.07);
+  --shadow-lg: 0 30px 80px rgba(92, 62, 32, 0.18);
+  --shadow-primary: 0 8px 24px rgba(159, 106, 68, 0.3);
+  --shadow-welcome: 0 10px 30px rgba(122, 86, 54, 0.22);
   --radius: 12px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.28);
   --sidebar-w: 250px;
+}
+
+/* ===== Tema gelap — warm dark, senada brand cream ===== */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #17130e;
+  --surface: #201a12;
+  --surface-2: #2a2218;
+  --border: #3a3023;
+  --text: #f0e7d8;
+  --text-med: #d8cbb4;
+  --text-muted: #a2937a;
+  --text-soft: #7d6f58;
+  --on-primary: #ffffff;
+  --primary: #d19a63;
+  --primary-hover: #ddab77;
+  --primary-deep: #c98d5c;
+  --accent2: #e8b98a;
+  --primary-soft: rgba(209, 154, 99, 0.16);
+  --primary-border: rgba(209, 154, 99, 0.38);
+  --primary-border-soft: rgba(209, 154, 99, 0.16);
+  --primary-border-strong: rgba(209, 154, 99, 0.55);
+  --success: #58b980;
+  --success-soft: rgba(88, 185, 128, 0.16);
+  --danger: #e07064;
+  --danger-hover: #cf5b4f;
+  --danger-soft: rgba(224, 112, 100, 0.16);
+  --danger-border: rgba(224, 112, 100, 0.38);
+  --warning: #d9a044;
+  --warning-soft: rgba(217, 160, 68, 0.16);
+  --info: #4cc3d6;
+  --info-soft: rgba(76, 195, 214, 0.16);
+  --grad-primary: linear-gradient(135deg, #b07a50, #c98d5c 60%, #d9a46e);
+  --grad-text: linear-gradient(90deg, #d9a46e, #e8b98a);
+  --grad-welcome: linear-gradient(120deg, #3d2e1c, #5d442c);
+  --nav-bg: rgba(23, 19, 14, 0.82);
+  --card-glass: rgba(255, 255, 255, 0.045);
+  --chip-bg: rgba(255, 255, 255, 0.06);
+  --ghost-bg: rgba(255, 255, 255, 0.05);
+  --marquee-bg: #1b1610;
+  --footer-bg: rgba(255, 255, 255, 0.03);
+  --input-bg: #262016;
+  --th-bg: #262016;
+  --row-hover: rgba(209, 154, 99, 0.07);
+  --spotlight: rgba(209, 154, 99, 0.1);
+  --float-color: rgba(209, 154, 99, 0.5);
+  --star-color: #6b5433;
+  --blob-1: #6e5331;
+  --blob-2: #5d4830;
+  --blob-3: #7a5a35;
+  --hero-bg:
+    radial-gradient(ellipse 55% 45% at 18% 12%, rgba(209, 154, 99, 0.13), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 20%, rgba(181, 140, 92, 0.11), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 60% 100%, rgba(148, 112, 66, 0.1), transparent 60%),
+    linear-gradient(165deg, #1e1812 0%, #1a1510 55%, #16120d 100%);
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --login-overlay: rgba(23, 19, 14, 0.72);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.5);
+  --shadow-primary: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-welcome: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,7 +141,30 @@ body {
 
 .hidden { display: none !important; }
 
-/* ===== Login — overlay gelap glassmorphism (nyambung landing) ===== */
+/* ===== Tombol toggle tema (dipakai di nav landing & topbar app) ===== */
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--primary-border);
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+}
+.theme-btn:hover {
+  background: var(--primary-border-soft);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.theme-btn i { transition: transform 0.25s ease; }
+.theme-btn:hover i { transform: rotate(20deg) scale(1.1); }
+
+/* ===== Login — overlay (nyambung landing, terang & gelap) ===== */
 .login-screen {
   position: fixed;
   inset: 0;
@@ -40,7 +172,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(11, 16, 32, 0.55);
+  background: var(--login-overlay);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: 20px;
@@ -50,13 +182,13 @@ body {
   position: relative;
   width: 100%;
   max-width: 420px;
-  background: #1b2145;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--surface);
+  border: 1px solid var(--primary-border-soft);
   border-radius: 20px;
   padding: 40px 36px 32px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lg);
   text-align: center;
-  color: #e2e8f0;
+  color: var(--text);
   animation: login-in 0.3s ease;
 }
 @keyframes login-in {
@@ -71,28 +203,28 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  color: #fff;
+  color: var(--on-primary);
   border-radius: 18px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  background: var(--grad-primary);
+  box-shadow: var(--shadow-primary);
 }
 .login-card h1 {
   margin: 0 0 2px;
   font-size: 27px;
-  color: #fff;
+  color: var(--text);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
-.login-sub { color: #94a3b8; margin-bottom: 12px; font-size: 14px; }
+.login-sub { color: var(--text-muted); margin-bottom: 12px; font-size: 14px; }
 .login-kelas {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #c7d2fe;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(129, 140, 248, 0.3);
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-border);
   padding: 4px 12px;
   border-radius: 999px;
   margin-bottom: 26px;
@@ -103,24 +235,24 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #cbd5e1;
+  color: var(--text-med);
   margin-bottom: 7px;
 }
-.login-card .form-group label i { color: #818cf8; font-size: 12px; width: 14px; }
+.login-card .form-group label i { color: var(--primary); font-size: 12px; width: 14px; }
 .login-card .form-group input {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 11px 13px;
   border-radius: 10px;
   font-size: 14px;
 }
-.login-card .form-group input::placeholder { color: #64748b; }
+.login-card .form-group input::placeholder { color: var(--text-soft); }
 .login-card .form-group input:focus {
   outline: none;
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.22);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  background: var(--surface-2);
 }
 .login-field { position: relative; }
 .login-field input { padding-right: 46px; }
@@ -131,13 +263,13 @@ body {
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--text-soft);
   cursor: pointer;
   padding: 9px;
   font-size: 15px;
   transition: color 0.15s;
 }
-.login-toggle:hover { color: #c7d2fe; }
+.login-toggle:hover { color: var(--primary-deep); }
 .login-submit {
   width: 100%;
   padding: 12px;
@@ -146,29 +278,29 @@ body {
   font-size: 15px;
   font-weight: 700;
   font-family: inherit;
-  color: #fff;
+  color: var(--on-primary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6 60%, #a855f7);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+  background: var(--grad-primary);
+  box-shadow: var(--shadow-primary);
   transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
   margin-top: 4px;
 }
 .login-submit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.45);
+  box-shadow: var(--shadow-primary);
 }
 .login-submit:disabled { opacity: 0.65; cursor: not-allowed; }
 .login-error {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #fca5a5;
-  background: rgba(220, 38, 38, 0.12);
-  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
   font-size: 13px;
   margin-top: 14px;
   padding: 10px 12px;
@@ -178,16 +310,16 @@ body {
 .login-hint {
   margin-top: 24px;
   font-size: 12.5px;
-  color: #a8b3c7;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px dashed rgba(255, 255, 255, 0.18);
+  color: var(--text-muted);
+  background: var(--input-bg);
+  border: 1px dashed var(--primary-border);
   border-radius: 10px;
   padding: 12px 14px;
   line-height: 2;
   text-align: left;
 }
-.login-hint strong { color: #cbd5e1; }
-.login-hint b { color: #a5b4fc; font-weight: 600; }
+.login-hint strong { color: var(--text-med); }
+.login-hint b { color: var(--primary-deep); font-weight: 600; }
 
 /* ===== Layout ===== */
 .app-shell { display: flex; min-height: 100vh; }
@@ -239,7 +371,7 @@ body {
   width: 36px; height: 36px;
   border-radius: 50%;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,7 +400,7 @@ body {
   z-index: 30;
 }
 .topbar h2 { font-size: 19px; flex: 1; }
-.topbar-actions { display: flex; gap: 8px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
 #menuBtn { display: none; }
 
 .page-content { padding: 24px; max-width: 1200px; width: 100%; }
@@ -276,7 +408,7 @@ body {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--backdrop);
   z-index: 35;
 }
 
@@ -297,19 +429,19 @@ body {
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  background: linear-gradient(120deg, #4f46e5, #7c3aed);
+  background: var(--grad-welcome);
   border-radius: var(--radius);
   padding: 20px 24px;
   margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
+  box-shadow: var(--shadow-welcome);
 }
 .dash-welcome h3 { font-size: 19px; margin: 0; color: #fff; }
 .dash-welcome h3 strong { color: #fff; }
-.dash-welcome h3 i { color: #fbbf24; margin-left: 4px; }
+.dash-welcome h3 i { color: var(--welcome-accent); margin-left: 4px; }
 .dash-welcome p {
   margin: 6px 0 0;
   font-size: 13.5px;
-  color: #e0e7ff;
+  color: var(--welcome-text);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -320,8 +452,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   padding: 2px 10px;
   border-radius: 999px;
   font-weight: 600;
@@ -377,10 +509,10 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--th-bg);
 }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+tbody tr:hover { background: var(--row-hover); }
 .empty-row { text-align: center; color: var(--text-muted); padding: 28px !important; }
 
 /* ===== Badges ===== */
@@ -393,7 +525,7 @@ tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
 }
 .badge-hadir { background: var(--success-soft); color: var(--success); }
 .badge-sakit { background: var(--warning-soft); color: var(--warning); }
-.badge-izin { background: var(--info-soft); color: #0284c7; }
+.badge-izin { background: var(--info-soft); color: var(--info); }
 .badge-alpa { background: var(--danger-soft); color: var(--danger); }
 .badge-lunas { background: var(--success-soft); color: var(--success); }
 .badge-belum { background: var(--warning-soft); color: var(--warning); }
@@ -417,9 +549,9 @@ tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
 .jadwal-item strong { display: block; font-size: 14px; }
 .jadwal-item .jam { color: var(--text-muted); font-size: 12.5px; }
 .jadwal-item.jadwal-istirahat {
-  border-left-color: #64748b;
+  border-left-color: var(--text-soft);
   border-style: dashed;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--th-bg);
 }
 .jadwal-item.jadwal-istirahat strong {
   color: var(--text-muted);

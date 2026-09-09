@@ -101,7 +101,49 @@ const Utils = {
     document.getElementById("modalRoot").classList.add("hidden");
     document.getElementById("modalBox").innerHTML = "";
   },
+
+  /* ===== Tema terang / gelap ===== */
+  tema: {
+    key: "kelas_theme",
+
+    mode() {
+      return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    },
+
+    terapkan(mode, simpan = true) {
+      document.documentElement.setAttribute("data-theme", mode);
+      if (simpan) {
+        try {
+          localStorage.setItem(this.key, mode);
+        } catch (e) {}
+      }
+      this.syncIcons();
+    },
+
+    toggle() {
+      this.terapkan(this.mode() === "dark" ? "light" : "dark");
+    },
+
+    /* Sinkronkan ikon matahari/bulan di semua tombol toggle */
+    syncIcons() {
+      const gelap = this.mode() === "dark";
+      document.querySelectorAll("[data-tema-toggle]").forEach((btn) => {
+        const icon = btn.querySelector("i");
+        if (icon) icon.className = "fa-solid " + (gelap ? "fa-sun" : "fa-moon");
+        btn.title = gelap ? "Mode terang" : "Mode gelap";
+      });
+    },
+
+    init() {
+      document.querySelectorAll("[data-tema-toggle]").forEach((btn) =>
+        btn.addEventListener("click", () => Utils.tema.toggle())
+      );
+      this.syncIcons();
+    },
+  },
 };
 
 /* Tutup modal kalau klik backdrop */
 document.getElementById("modalBackdrop")?.addEventListener("click", () => Utils.tutupModal());
+
+document.addEventListener("DOMContentLoaded", () => Utils.tema.init());

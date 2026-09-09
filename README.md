@@ -5,12 +5,13 @@ Web app sederhana untuk mengelola kehidupan kelas: **kas, absensi, PR & tugas, j
 ## ✨ Fitur
 
 - **Landing page** — hero animasi, statistik live dari data, marquee mapel, dan 6 kartu fitur
+- **Mode gelap / terang** — toggle di nav landing & topbar app (ikon ☾/☀), tersimpan di browser, ikut preferensi sistem saat pertama dibuka
 - **Login** — akun default: `admin` / `admin123` (admin kelas) dan `walikelas` / `walikelas123` (wali kelas), password di-hash SHA-256
 - **Seed data asli** — 36 siswa XII RPL 1 (NIS, NISN, L/P) + wali kelas **Siti Aisyah, S.Ag** dari file `data siswa kelas xii rpl 1.xlsx`
 - **Jadwal asli** — 12 mapel + guru pengajar, jadwal Senin–Jumat lengkap dengan jam istirahat (seed dari jadwal XII RPL 1)
 - **Dashboard** — ringkasan siswa, absen hari ini, PR terdekat, saldo kas, jadwal hari ini
 - **Data Siswa** — CRUD daftar siswa: NIS, NISN, jenis kelamin
-- **Absensi** — absen harian (hadir/sakit/izin/alpa), rekap 30 hari, export CSV
+- **Absensi** — absen harian (hadir/sakit/izin/alpa), rekap 30 hari, **rekap per rentang tanggal** (per siswa + kehadiran %, tombol cepat 7/30 hari, export CSV)
 - **Kas Kelas** — transaksi masuk/keluar, saldo otomatis, kas personal **Rp5.000/minggu** (semester 1: 22 minggu = Rp110.000) + rekap matriks mingguan, export CSV
 - **Mata Pelajaran** — daftar mapel + guru pengajar
 - **Jadwal** — jadwal mingguan per hari (Senin–Jumat) dengan guru pengajar & jam istirahat
@@ -55,7 +56,7 @@ Lalu buka `http://localhost:8080`.
 ```
 ├── index.html          # SPA shell + login
 ├── css/
-│   ├── style.css       # tema & layout
+│   ├── style.css       # tema (terang/gelap via CSS vars) & layout
 │   ├── components.css  # tombol, form, modal, toast
 │   └── landing.css     # landing page (hero, animasi, fitur)
 ├── js/

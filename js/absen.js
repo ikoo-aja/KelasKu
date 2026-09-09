@@ -1,6 +1,8 @@
 /* ===== KelasKu — modul absensi ===== */
 const AbsenPage = {
   tanggalTerpilih: Utils.hariIni(),
+  rekapDari: null,
+  rekapSampai: null,
 
   render() {
     const isAdmin = Auth.isAdmin();
@@ -28,6 +30,9 @@ const AbsenPage = {
       .forEach((a) => {
         if (rekap[a.status] !== undefined) rekap[a.status]++;
       });
+
+    /* Rekap per rentang tanggal (per siswa) */
+    const rek = this.hitungRekapRentang();
 
     return `
       <div class="section-head">
@@ -85,11 +90,64 @@ const AbsenPage = {
       }
 
       <div class="card mt-16">
+        <div class="section-head">
+          <h3><i class="fa-solid fa-calendar-days"></i> Rekap Absen per Rentang Tanggal</h3>
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.exportRekapCsv()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+        </div>
+        <div class="absen-toolbar">
+          <label class="text-muted">Dari:</label>
+          <input type="date" id="rekapDari" value="${this.rekapDari}" onchange="AbsenPage.gantiRekapDari(this.value)" />
+          <label class="text-muted">Sampai:</label>
+          <input type="date" id="rekapSampai" value="${this.rekapSampai}" onchange="AbsenPage.gantiRekapSampai(this.value)" />
+          <span class="text-muted" style="font-size:13px">${Utils.formatTanggal(rek.dari)} – ${Utils.formatTanggal(rek.sampai)} · ${rek.hariTercatat} hari tercatat</span>
+          <span style="flex:1"></span>
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.setRekapHari(7)">7 Hari</button>
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.setRekapHari(30)">30 Hari</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value text-success">${rek.tot.hadir}</div><div class="stat-label">Hadir</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-thermometer-half"></i></div><div class="stat-value text-warning">${rek.tot.sakit}</div><div class="stat-label">Sakit</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value" style="color:var(--info)">${rek.tot.izin}</div><div class="stat-label">Izin</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div><div class="stat-value text-danger">${rek.tot.alpa}</div><div class="stat-label">Alpa</div></div>
+        </div>
+        <div class="table-wrap" style="box-shadow:none">
+          <table>
+            <thead><tr><th>Nama Siswa</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Total</th><th>Kehadiran</th></tr></thead>
+            <tbody>
+              ${rek.rows
+                .map(
+                  (r) => `
+                <tr>
+                  <td><strong>${Utils.escapeHtml(r.nama)}</strong></td>
+                  <td class="text-success">${r.hadir}</td>
+                  <td class="text-warning">${r.sakit}</td>
+                  <td style="color:var(--info)">${r.izin}</td>
+                  <td class="text-danger">${r.alpa}</td>
+                  <td>${r.total}</td>
+                  <td>${r.total ? Math.round((r.hadir / r.total) * 100) + "%" : "-"}</td>
+                </tr>`
+                )
+                .join("")}
+              <tr style="border-top:2px solid var(--border)">
+                <td><strong>Total</strong></td>
+                <td><strong>${rek.tot.hadir}</strong></td>
+                <td><strong>${rek.tot.sakit}</strong></td>
+                <td><strong>${rek.tot.izin}</strong></td>
+                <td><strong>${rek.tot.alpa}</strong></td>
+                <td><strong>${rek.tot.total}</strong></td>
+                <td><strong>${rek.tot.total ? Math.round((rek.tot.hadir / rek.tot.total) * 100) + "%" : "-"}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-16">
         <h3>Rekap 30 Hari Terakhir</h3>
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value text-success">${rekap.hadir}</div><div class="stat-label">Hadir</div></div>
           <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-thermometer-half"></i></div><div class="stat-value text-warning">${rekap.sakit}</div><div class="stat-label">Sakit</div></div>
-          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value" style="color:#38bdf8">${rekap.izin}</div><div class="stat-label">Izin</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value" style="color:var(--info)">${rekap.izin}</div><div class="stat-label">Izin</div></div>
           <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div><div class="stat-value text-danger">${rekap.alpa}</div><div class="stat-label">Alpa</div></div>
         </div>
       </div>
@@ -217,6 +275,106 @@ const AbsenPage = {
   gantiTanggal(tgl) {
     this.tanggalTerpilih = tgl || Utils.hariIni();
     App.rerender();
+  },
+
+  /* Hitung rekap per rentang tanggal (dipakai render & export) */
+  hitungRekapRentang() {
+    if (!this.rekapDari || !this.rekapSampai) {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      this.rekapDari =
+        d.getFullYear() +
+        "-" +
+        String(d.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(d.getDate()).padStart(2, "0");
+      this.rekapSampai = Utils.hariIni();
+    }
+    let dari = this.rekapDari;
+    let sampai = this.rekapSampai;
+    if (dari > sampai) [dari, sampai] = [sampai, dari];
+    const siswa = Store.get("siswa").sort((a, b) => a.nama.localeCompare(b.nama));
+    const absenRentang = Store.get("absen").filter(
+      (a) => a.tanggal >= dari && a.tanggal <= sampai
+    );
+    const rows = siswa.map((s) => {
+      const c = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+      absenRentang
+        .filter((a) => a.siswaId === s.id)
+        .forEach((a) => {
+          if (c[a.status] !== undefined) c[a.status]++;
+        });
+      c.total = c.hadir + c.sakit + c.izin + c.alpa;
+      return { nama: s.nama, ...c };
+    });
+    const tot = rows.reduce(
+      (t, r) => {
+        t.hadir += r.hadir;
+        t.sakit += r.sakit;
+        t.izin += r.izin;
+        t.alpa += r.alpa;
+        t.total += r.total;
+        return t;
+      },
+      { hadir: 0, sakit: 0, izin: 0, alpa: 0, total: 0 }
+    );
+    return {
+      dari,
+      sampai,
+      rows,
+      tot,
+      hariTercatat: new Set(absenRentang.map((a) => a.tanggal)).size,
+    };
+  },
+
+  gantiRekapDari(tgl) {
+    this.rekapDari = tgl || this.rekapDari;
+    App.rerender();
+  },
+
+  gantiRekapSampai(tgl) {
+    this.rekapSampai = tgl || this.rekapSampai;
+    App.rerender();
+  },
+
+  /* Setel rentang: n hari terakhir sampai hari ini */
+  setRekapHari(n) {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    this.rekapDari =
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0");
+    this.rekapSampai = Utils.hariIni();
+    App.rerender();
+  },
+
+  exportRekapCsv() {
+    const rek = this.hitungRekapRentang();
+    const baris = [["Nama", "Hadir", "Sakit", "Izin", "Alpa", "Total", "Kehadiran %"]];
+    rek.rows.forEach((r) =>
+      baris.push([
+        r.nama,
+        r.hadir,
+        r.sakit,
+        r.izin,
+        r.alpa,
+        r.total,
+        r.total ? Math.round((r.hadir / r.total) * 100) : 0,
+      ])
+    );
+    baris.push([
+      "TOTAL",
+      rek.tot.hadir,
+      rek.tot.sakit,
+      rek.tot.izin,
+      rek.tot.alpa,
+      rek.tot.total,
+      rek.tot.total ? Math.round((rek.tot.hadir / rek.tot.total) * 100) : 0,
+    ]);
+    App.downloadCsv("rekap-absen-" + rek.dari + "-sd-" + rek.sampai + ".csv", baris);
   },
 
   /* Simpan/update absen 1 siswa (upsert per tanggal) */
