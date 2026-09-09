@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KelasKu — XII RPL 1</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'><path fill='%234f46e5' d='M320 32c-8.1 0-16.1 1.4-23.7 4.1L15.8 137.4C6.3 140.9 0 149.9 0 160s6.3 19.1 15.8 22.6l57.9 20.9C57.3 229.3 48 259.8 48 291.9v28.1c0 28.4-10.8 57.7-22.3 80.8-6.5 13-13.9 25.8-22.5 37.6-4.6 6.4-5.1 14.3-1.2 20.9C7.2 473 13.9 480 22.1 480c6.7 0 13.3-3.2 17.5-8.6 11.6-15.2 21.9-31.6 30.6-48.5 8.8-17.1 16-35.5 21.8-54.6l92.4 33.4c11.3 4.1 23.6 6.2 36.1 6.2h.1c12.5 0 24.8-2.1 36.1-6.2l176.2-63.7c7-2.5 11.7-9.2 11.7-16.8v-35.8c0-32-10.8-62.5-21.8-89.1l56.4-20.4C441.7 179.1 448 170.1 448 160s-6.3-19.1-15.8-22.6L343.7 36.1C336.1 33.4 328.1 32 320 32zm49.2 223.1l-81.3 29.4c-8.9 3.2-18.2 4.8-27.9 4.8-9.7 0-19-1.6-27.9-4.8L128 251v-35.8c0-23.3 8.7-49.3 18-66.8l157.5 56.9c5.5 2 11.4 3 17.5 3s12-1 17.5-3L368.9 148.4c9.3 17.5 18 43.5 18 66.8V255.1z'/></svg>" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/landing.css" />
+</head>
+<body>
+  <!-- ===== LANDING PAGE ===== -->
+  <div id="landingScreen">
+    <nav class="lp-nav">
+      <div class="lp-nav-inner">
+        <a href="#" class="lp-logo"><i class="fa-solid fa-graduation-cap"></i> KelasKu <span>XII RPL 1</span></a>
+        <div class="lp-nav-links">
+          <a href="#statistik">Statistik</a>
+          <a href="#fitur">Fitur</a>
+          <button class="btn btn-primary btn-sm" data-buka-login>Masuk</button>
+        </div>
+        <button class="lp-menu-btn" id="lpMenuBtn"><i class="fa-solid fa-bars"></i></button>
+      </div>
+      <div class="lp-menu" id="lpMenu">
+        <a href="#statistik">Statistik</a>
+        <a href="#fitur">Fitur</a>
+        <button class="btn btn-primary" data-buka-login>Masuk</button>
+      </div>
+    </nav>
+
+    <header class="lp-hero">
+      <div class="lp-blob lp-blob-1"></div>
+      <div class="lp-blob lp-blob-2"></div>
+      <div class="lp-blob lp-blob-3"></div>
+      <div class="lp-float lp-float-1"><i class="fa-solid fa-book-open"></i></div>
+      <div class="lp-float lp-float-2"><i class="fa-solid fa-coins"></i></div>
+      <div class="lp-float lp-float-3"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="lp-float lp-float-4"><i class="fa-solid fa-calendar-days"></i></div>
+      <div class="lp-hero-inner">
+        <span class="lp-badge"><i class="fa-solid fa-school"></i> Kelas XII RPL 1 · SMK</span>
+        <h1>Urus <span class="lp-grad lp-rot" id="lpRot">kas</span> kelas<br />jadi gampang. <i class="fa-solid fa-rocket"></i></h1>
+        <p class="lp-sub">
+          Kas, absensi, PR, jadwal, dan mata pelajaran — semua rapi dalam satu aplikasi.
+          Gak pusing lagi urus kelas, bro!
+        </p>
+        <div class="lp-cta">
+          <button class="btn btn-primary btn-lg" data-buka-login><i class="fa-solid fa-rocket"></i> Masuk</button>
+          <a href="#fitur" class="btn btn-lg lp-ghost-dark">Lihat Fitur <i class="fa-solid fa-arrow-down"></i></a>
+        </div>
+        <div class="lp-chip-row" id="lpChips"></div>
+      </div>
+    </header>
+
+    <section class="lp-stats-section" id="statistik">
+      <div class="lp-section">
+        <div class="lp-stats" id="lpStats">
+          <div class="lp-stat reveal" style="--i:0"><div class="lp-stat-icon"><i class="fa-solid fa-users"></i></div><div class="lp-stat-num"><span class="lp-grad" data-counter="siswa">0</span></div><div class="lp-stat-label">Siswa Terdaftar</div></div>
+          <div class="lp-stat reveal" style="--i:1"><div class="lp-stat-icon"><i class="fa-solid fa-book-open"></i></div><div class="lp-stat-num"><span class="lp-grad" data-counter="mapel">0</span></div><div class="lp-stat-label">Mata Pelajaran</div></div>
+          <div class="lp-stat reveal" style="--i:2"><div class="lp-stat-icon"><i class="fa-solid fa-coins"></i></div><div class="lp-stat-num" id="lpStatKas"><span class="lp-grad" data-counter="kas">0</span></div><div class="lp-stat-label">Saldo Kas</div></div>
+          <div class="lp-stat reveal" style="--i:3"><div class="lp-stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="lp-stat-num"><span class="lp-grad" data-counter="hadir">0</span></div><div class="lp-stat-label">Hadir Hari Ini</div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="lp-marquee">
+      <div class="lp-marquee-track" id="lpMarquee"></div>
+    </div>
+
+    <section class="lp-section" id="fitur">
+      <h2 class="lp-section-title">Semua <span class="lp-grad">kebutuhan kelas</span> ada di sini</h2>
+      <p class="lp-section-sub">Enam modul siap pakai, data tersimpan aman di browser. Cukup login dan semua beres.</p>
+      <div class="lp-features">
+        <div class="lp-feature reveal" style="--i:0"><div class="lp-feature-icon"><i class="fa-solid fa-coins"></i></div><h3>Kas Kelas</h3><p>Catat iuran &amp; pengeluaran, saldo otomatis, plus tagihan kas per siswa — transparan dan rapi.</p></div>
+        <div class="lp-feature reveal" style="--i:1"><div class="lp-feature-icon"><i class="fa-solid fa-circle-check"></i></div><h3>Absensi</h3><p>Absen harian hadir / sakit / izin / alpa, rekap 30 hari, dan export CSV buat laporan wali kelas.</p></div>
+        <div class="lp-feature reveal" style="--i:2"><div class="lp-feature-icon"><i class="fa-solid fa-clipboard-list"></i></div><h3>PR &amp; Tugas</h3><p>Catat PR per mapel lengkap dengan tenggat dan status. Gak ada lagi PR kelewat deadline.</p></div>
+        <div class="lp-feature reveal" style="--i:3"><div class="lp-feature-icon"><i class="fa-solid fa-calendar-days"></i></div><h3>Jadwal Pelajaran</h3><p>Jadwal mingguan Senin–Jumat biar gak bingung jam berikutnya mapel apa dan di ruang mana.</p></div>
+        <div class="lp-feature reveal" style="--i:4"><div class="lp-feature-icon"><i class="fa-solid fa-book-open"></i></div><h3>Mata Pelajaran</h3><p>Daftar mapel lengkap dengan guru pengajar — tinggal kelola, langsung kepakai semua modul.</p></div>
+        <div class="lp-feature reveal" style="--i:5"><div class="lp-feature-icon"><i class="fa-solid fa-users"></i></div><h3>Data Siswa</h3><p>Data siswa + NIS terpusat, jadi modal buat absen, kas, dan laporan kelas lainnya.</p></div>
+      </div>
+    </section>
+
+    <section class="lp-section" style="padding-top: 0">
+      <div class="lp-cta-banner reveal">
+        <h2>Siap bikin kelas lebih rapi? <i class="fa-solid fa-face-grin-stars"></i></h2>
+        <p>Masuk sekarang dan mulai urus kelas kita — gratis, cepat, dan gak ribet.</p>
+        <button class="btn btn-primary btn-lg" data-buka-login><i class="fa-solid fa-rocket"></i> Masuk</button>
+      </div>
+    </section>
+
+    <footer class="lp-footer">
+      <div class="lp-footer-grid">
+        <div class="lp-footer-brand">
+          <div class="lp-footer-logo"><i class="fa-solid fa-graduation-cap"></i> KelasKu</div>
+          <p>Semua urusan kelas — kas, absensi, PR, jadwal — rapi dalam satu aplikasi, gratis dan tanpa ribet.</p>
+        </div>
+        <div class="lp-footer-col">
+          <h4>Jelajahi</h4>
+          <a href="#statistik">Statistik</a>
+          <a href="#fitur">Fitur</a>
+          <a href="#" data-buka-login>Masuk</a>
+        </div>
+        <div class="lp-footer-col">
+          <h4>Kelas</h4>
+          <span><i class="fa-solid fa-school"></i> <span id="lpFooterKelas">XII RPL 1</span></span>
+          <span><i class="fa-solid fa-user-tie"></i> Wali: <span id="lpFooterWali">-</span></span>
+          <span><i class="fa-solid fa-users"></i> <span id="lpFooterSiswa">-</span> siswa</span>
+        </div>
+      </div>
+      <div class="lp-footer-bar">
+        <span>© 2026 KelasKu — XII RPL 1</span>
+        <span>Dibuat dengan <i class="fa-solid fa-heart"></i> oleh kelas kita · Data tersimpan di browser</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div id="loginScreen" class="login-screen hidden">
+    <div class="login-card">
+      <button class="login-close" id="loginClose" title="Kembali"><i class="fa-solid fa-xmark"></i></button>
+      <div class="login-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+      <h1>KelasKu</h1>
+      <p class="login-sub">Aplikasi Kelas</p>
+      <span class="login-kelas" id="loginKelas"><i class="fa-solid fa-school"></i> XII RPL 1</span>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUsername"><i class="fa-solid fa-user"></i> Username</label>
+          <input type="text" id="loginUsername" placeholder="Masukkan username" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword"><i class="fa-solid fa-lock"></i> Password</label>
+          <div class="login-field">
+            <input type="password" id="loginPassword" placeholder="Masukkan password" autocomplete="current-password" required />
+            <button type="button" class="login-toggle" id="loginTogglePass" tabindex="-1" title="Lihat password"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="login-submit" id="loginBtn">
+          <i class="fa-solid fa-circle-notch fa-spin hidden" id="loginSpinner"></i>
+          <span id="loginBtnText">Masuk</span>
+        </button>
+        <p id="loginError" class="login-error hidden">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="loginErrorText"></span>
+        </p>
+      </form>
+      <div class="login-hint">
+        <strong>Akun default:</strong><br />
+        Admin &nbsp; <b>admin</b> / <b>admin123</b><br />
+        Wali kelas &nbsp; <b>walikelas</b> / <b>walikelas123</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APP SHELL ===== -->
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <span class="sidebar-logo"><i class="fa-solid fa-graduation-cap"></i></span>
+        <div>
+          <div class="sidebar-title">KelasKu</div>
+          <div class="sidebar-sub" id="sidebarSub">XII RPL 1</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <a href="#/dashboard" data-page="dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="#/siswa" data-page="siswa"><i class="fa-solid fa-users"></i> Data Siswa</a>
+        <a href="#/absen" data-page="absen"><i class="fa-solid fa-circle-check"></i> Absensi</a>
+        <a href="#/kas" data-page="kas"><i class="fa-solid fa-coins"></i> Kas Kelas</a>
+        <a href="#/pelajaran" data-page="pelajaran"><i class="fa-solid fa-book-open"></i> Mata Pelajaran</a>
+        <a href="#/jadwal" data-page="jadwal"><i class="fa-solid fa-calendar-days"></i> Jadwal</a>
+        <a href="#/pr" data-page="pr"><i class="fa-solid fa-clipboard-list"></i> PR &amp; Tugas</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="user-chip">
+          <span id="userAvatar" class="avatar">A</span>
+          <div>
+            <div id="userNama" class="user-nama">Admin</div>
+            <div id="userRole" class="user-role">admin_guru</div>
+          </div>
+        </div>
+        <button id="logoutBtn" class="btn btn-ghost btn-block">Keluar</button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="menuBtn" class="btn btn-icon btn-ghost"><i class="fa-solid fa-bars"></i></button>
+        <h2 id="pageTitle">Dashboard</h2>
+        <div id="topbarActions" class="topbar-actions"></div>
+      </header>
+      <div id="pageContent" class="page-content"></div>
+    </main>
+  </div>
+
+  <!-- ===== MODAL & TOAST ===== -->
+  <div id="modalRoot" class="modal-root hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal" id="modalBox"></div>
+  </div>
+  <div id="toastRoot" class="toast-root"></div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/siswa.js"></script>
+  <script src="js/absen.js"></script>
+  <script src="js/kas.js"></script>
+  <script src="js/pelajaran.js"></script>
+  <script src="js/jadwal.js"></script>
+  <script src="js/pr.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/landing.js"></script>
+</body>
+</html>
