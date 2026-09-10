@@ -3,9 +3,13 @@ const AbsenPage = {
   tanggalTerpilih: Utils.hariIni(),
   rekapDari: null,
   rekapSampai: null,
+  /* draft absen harian yang belum dikonfirmasi: { siswaId: {status, keterangan} } */
+  draft: {},
+  /* tanggal untuk kartu "Lihat Absen per Tanggal" */
+  lihatTanggal: Utils.hariIni(),
 
   render() {
-    const isAdmin = Auth.isAdmin();
+    const bisaEdit = Auth.boleh("absen") === "edit";
     const siswa = Store.get("siswa").sort((a, b) => a.nama.localeCompare(b.nama));
     const absenHariIni = Store.get("absen").filter(
       (a) => a.tanggal === this.tanggalTerpilih
@@ -33,6 +37,8 @@ const AbsenPage = {
 
     /* Rekap per rentang tanggal (per siswa) */
     const rek = this.hitungRekapRentang();
+    const draftCount = this.hitungDraft();
+    const lihat = this.hitungLihatTanggal();
 
     return `
       <div class="section-head">
@@ -40,7 +46,7 @@ const AbsenPage = {
       </div>
 
       ${
-        isAdmin
+        bisaEdit
           ? `
       <div class="card">
         <div class="absen-toolbar">
@@ -48,7 +54,18 @@ const AbsenPage = {
           <input type="date" id="absenTanggal" value="${this.tanggalTerpilih}" onchange="AbsenPage.gantiTanggal(this.value)" />
           <span class="text-muted" style="font-size:13px">${Utils.namaHari(this.tanggalTerpilih)}</span>
           <span style="flex:1"></span>
-          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.isiSemua('hadir')">Semua Hadir</button>
+          ${
+            draftCount > 0
+              ? `<span class="absen-pending-info"><i class="fa-solid fa-pen-to-square"></i> ${draftCount} perubahan belum dikonfirmasi</span>`
+              : ""
+          }
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.draftSemua('hadir')"><i class="fa-solid fa-user-check"></i> Semua Hadir</button>
+          <button class="btn btn-sm btn-primary" onclick="AbsenPage.konfirmasi()"><i class="fa-solid fa-check"></i> Konfirmasi Absen${draftCount > 0 ? ` (${draftCount})` : ""}</button>
+          ${
+            draftCount > 0
+              ? `<button class="btn btn-sm btn-ghost" onclick="AbsenPage.batalDraft()"><i class="fa-solid fa-rotate-left"></i> Batal</button>`
+              : ""
+          }
         </div>
         ${
           siswa.length === 0
@@ -61,12 +78,22 @@ const AbsenPage = {
               ${siswa
                 .map((s) => {
                   const rec = absenHariIni.find((a) => a.siswaId === s.id);
-                  const status = rec?.status || "";
+                  const d = this.draft[s.id];
+                  const status = d ? d.status : rec?.status || "";
+                  const keterangan = d ? d.keterangan : rec?.keterangan || "";
+                  const pending =
+                    !!d &&
+                    (d.status !== (rec?.status || "") ||
+                      d.keterangan !== (rec?.keterangan || ""));
                   return `
-                <tr>
-                  <td><strong>${Utils.escapeHtml(s.nama)}</strong></td>
+                <tr class="${pending ? "absen-row-pending" : ""}">
+                  <td><strong>${Utils.escapeHtml(s.nama)}</strong>${
+                    pending
+                      ? ' <i class="fa-solid fa-pen-to-square absen-pending-dot" title="belum dikonfirmasi"></i>'
+                      : ""
+                  }</td>
                   <td>
-                    <select class="absen-select" onchange="AbsenPage.simpan('${s.id}', this.value, '')">
+                    <select class="absen-select" onchange="AbsenPage.setDraft('${s.id}', this.value, '')">
                       <option value="" ${!status ? "selected" : ""}>— pilih —</option>
                       <option value="hadir" ${status === "hadir" ? "selected" : ""}>Hadir</option>
                       <option value="sakit" ${status === "sakit" ? "selected" : ""}>Sakit</option>
@@ -75,8 +102,8 @@ const AbsenPage = {
                     </select>
                   </td>
                   <td>
-                    <input type="text" class="absen-ket" style="width:100%" placeholder="ket..." value="${Utils.escapeHtml(rec?.keterangan || "")}"
-                      onchange="AbsenPage.simpan('${s.id}', '${status || "hadir"}', this.value)" />
+                    <input type="text" class="absen-ket" style="width:100%" placeholder="ket..." value="${Utils.escapeHtml(keterangan)}"
+                      onchange="AbsenPage.setDraft('${s.id}', '${status || "hadir"}', this.value)" />
                   </td>
                 </tr>`;
                 })
@@ -88,6 +115,48 @@ const AbsenPage = {
       </div>`
           : ""
       }
+
+      <div class="card mt-16">
+        <div class="section-head">
+          <h3><i class="fa-solid fa-magnifying-glass"></i> Lihat Absen per Tanggal</h3>
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.setLihatHariIni()"><i class="fa-solid fa-calendar-day"></i> Hari Ini</button>
+        </div>
+        <div class="absen-toolbar">
+          <label class="text-muted">Tanggal:</label>
+          <input type="date" id="lihatTanggal" value="${this.lihatTanggal}" onchange="AbsenPage.gantiLihatTanggal(this.value)" />
+          <span class="text-muted" style="font-size:13px">${Utils.namaHari(this.lihatTanggal)} · ${Utils.formatTanggal(this.lihatTanggal)}</span>
+          <span style="flex:1"></span>
+          <span class="text-muted" style="font-size:13px">${lihat.tercatat} dari ${siswa.length} siswa tercatat</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value text-success">${lihat.tot.hadir}</div><div class="stat-label">Hadir</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-thermometer-half"></i></div><div class="stat-value text-warning">${lihat.tot.sakit}</div><div class="stat-label">Sakit</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value" style="color:var(--info)">${lihat.tot.izin}</div><div class="stat-label">Izin</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div><div class="stat-value text-danger">${lihat.tot.alpa}</div><div class="stat-label">Alpa</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-user-slash"></i></div><div class="stat-value text-muted">${lihat.tot.belum}</div><div class="stat-label">Belum Tercatat</div></div>
+        </div>
+        <div class="table-wrap" style="box-shadow:none">
+          <table>
+            <thead><tr><th>Nama Siswa</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              ${lihat.rows
+                .map(
+                  (r) => `
+                <tr>
+                  <td><strong>${Utils.escapeHtml(r.nama)}</strong></td>
+                  <td>${
+                    r.status
+                      ? `<span class="badge badge-${r.status}">${r.status}</span>`
+                      : '<span class="text-muted">— belum tercatat —</span>'
+                  }</td>
+                  <td>${Utils.escapeHtml(r.keterangan || "-")}</td>
+                </tr>`
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <div class="card mt-16">
         <div class="section-head">
@@ -159,11 +228,11 @@ const AbsenPage = {
         </div>
         <div class="table-wrap" style="box-shadow:none">
           <table>
-            <thead><tr><th>Tanggal</th><th>Nama</th><th>Status</th><th>Keterangan</th>${isAdmin ? "<th>Aksi</th>" : ""}</tr></thead>
+            <thead><tr><th>Tanggal</th><th>Nama</th><th>Status</th><th>Keterangan</th>${bisaEdit ? "<th>Aksi</th>" : ""}</tr></thead>
             <tbody>
               ${
                 semuaAbsen.length === 0
-                  ? '<tr><td colspan="' + (isAdmin ? 5 : 4) + '" class="empty-row">Belum ada data absen.</td></tr>'
+                  ? '<tr><td colspan="' + (bisaEdit ? 5 : 4) + '" class="empty-row">Belum ada data absen.</td></tr>'
                   : [...semuaAbsen]
                       .sort((a, b) => b.tanggal.localeCompare(a.tanggal))
                       .slice(0, 50)
@@ -176,7 +245,7 @@ const AbsenPage = {
                       <td><span class="badge badge-${a.status}">${a.status}</span></td>
                       <td>${Utils.escapeHtml(a.keterangan || "-")}</td>
                       ${
-                        isAdmin
+                        bisaEdit
                           ? `<td>
                         <button class="btn btn-sm btn-danger" onclick="AbsenPage.hapus('${a.id}')"><i class="fa-solid fa-trash-can"></i> Hapus</button>
                       </td>`
@@ -273,7 +342,141 @@ const AbsenPage = {
   },
 
   gantiTanggal(tgl) {
-    this.tanggalTerpilih = tgl || Utils.hariIni();
+    const baru = tgl || Utils.hariIni();
+    if (baru === this.tanggalTerpilih) return;
+    const n = this.hitungDraft();
+    if (n > 0) {
+      Utils.konfirmasi({
+        judul: "Perubahan Belum Dikonfirmasi",
+        pesan: `Ada <strong>${n} perubahan</strong> absen yang belum dikonfirmasi.<br>Ganti tanggal dan buang perubahan tersebut?`,
+        tombolYa: "Ya, Ganti Tanggal",
+        onYa: () => {
+          this.tanggalTerpilih = baru;
+          this.draft = {};
+          App.rerender();
+        },
+      });
+      return;
+    }
+    this.tanggalTerpilih = baru;
+    this.draft = {};
+    App.rerender();
+  },
+
+  /* Hitung jumlah draft yang berbeda dari data tersimpan */
+  hitungDraft() {
+    const absenHariIni = Store.get("absen").filter((a) => a.tanggal === this.tanggalTerpilih);
+    return Object.entries(this.draft).filter(([id, d]) => {
+      const rec = absenHariIni.find((a) => a.siswaId === id);
+      return d.status !== (rec?.status || "") || d.keterangan !== (rec?.keterangan || "");
+    }).length;
+  },
+
+  /* Simpan ke draft (belum ke Store) — status kosong + ket kosong = hapus draft */
+  setDraft(siswaId, status, keterangan) {
+    if (!status && !keterangan) {
+      delete this.draft[siswaId];
+    } else {
+      this.draft[siswaId] = { status: status || "", keterangan };
+    }
+    App.rerender();
+  },
+
+  /* Tandai semua siswa ke draft (belum tersimpan sampai dikonfirmasi) */
+  draftSemua(status) {
+    Store.get("siswa").forEach((s) => {
+      this.draft[s.id] = { status, keterangan: this.draft[s.id]?.keterangan || "" };
+    });
+    Utils.toast("Semua siswa ditandai " + status + " — klik Konfirmasi untuk menyimpan");
+    App.rerender();
+  },
+
+  /* Simpan semua draft ke Store sekaligus (upsert per tanggal) */
+  konfirmasi() {
+    const entries = Object.entries(this.draft);
+    if (entries.length === 0) {
+      return Utils.toast("Tidak ada perubahan untuk disimpan", "error");
+    }
+    const semua = Store.get("absen");
+    let tersimpan = 0;
+    let dihapus = 0;
+    entries.forEach(([siswaId, d]) => {
+      const idx = semua.findIndex(
+        (a) => a.siswaId === siswaId && a.tanggal === this.tanggalTerpilih
+      );
+      if (!d.status) {
+        /* status dikosongkan → hapus catatan hari itu kalau ada */
+        if (idx >= 0) {
+          semua.splice(idx, 1);
+          dihapus++;
+        }
+        return;
+      }
+      if (idx >= 0) {
+        semua[idx].status = d.status;
+        semua[idx].keterangan = d.keterangan;
+      } else {
+        semua.push({
+          id: Utils.uid(),
+          tanggal: this.tanggalTerpilih,
+          siswaId,
+          status: d.status,
+          keterangan: d.keterangan,
+          dibuatPada: new Date().toISOString(),
+        });
+      }
+      tersimpan++;
+    });
+    Store.set("absen", semua);
+    this.draft = {};
+    Utils.toast(
+      "Absen " + Utils.formatTanggal(this.tanggalTerpilih) + " disimpan — " + tersimpan + " siswa" + (dihapus ? ", " + dihapus + " dihapus" : "")
+    );
+    App.rerender();
+  },
+
+  /* Buang semua perubahan yang belum dikonfirmasi */
+  batalDraft() {
+    const n = this.hitungDraft();
+    if (n === 0) {
+      this.draft = {};
+      App.rerender();
+      return;
+    }
+    Utils.konfirmasi({
+      judul: "Buang Perubahan",
+      pesan: `Buang <strong>${n} perubahan</strong> absen yang belum dikonfirmasi?`,
+      tombolYa: "Ya, Buang",
+      onYa: () => {
+        this.draft = {};
+        App.rerender();
+      },
+    });
+  },
+
+  /* --- Lihat absen per tanggal (view-only) --- */
+  hitungLihatTanggal() {
+    const siswa = Store.get("siswa").sort((a, b) => a.nama.localeCompare(b.nama));
+    const recs = Store.get("absen").filter((a) => a.tanggal === this.lihatTanggal);
+    const rows = siswa.map((s) => {
+      const r = recs.find((x) => x.siswaId === s.id);
+      return { nama: s.nama, status: r?.status || "", keterangan: r?.keterangan || "" };
+    });
+    const tot = { hadir: 0, sakit: 0, izin: 0, alpa: 0, belum: 0 };
+    recs.forEach((r) => {
+      if (tot[r.status] !== undefined) tot[r.status]++;
+    });
+    tot.belum = siswa.length - recs.length;
+    return { rows, tot, tercatat: recs.length };
+  },
+
+  gantiLihatTanggal(tgl) {
+    this.lihatTanggal = tgl || Utils.hariIni();
+    App.rerender();
+  },
+
+  setLihatHariIni() {
+    this.lihatTanggal = Utils.hariIni();
     App.rerender();
   },
 
@@ -377,35 +580,7 @@ const AbsenPage = {
     App.downloadCsv("rekap-absen-" + rek.dari + "-sd-" + rek.sampai + ".csv", baris);
   },
 
-  /* Simpan/update absen 1 siswa (upsert per tanggal) */
-  simpan(siswaId, status, keterangan) {
-    if (!status) return;
-    const semua = Store.get("absen");
-    const idx = semua.findIndex(
-      (a) => a.siswaId === siswaId && a.tanggal === this.tanggalTerpilih
-    );
-    if (idx >= 0) {
-      semua[idx].status = status;
-      semua[idx].keterangan = keterangan;
-    } else {
-      semua.push({
-        id: Utils.uid(),
-        tanggal: this.tanggalTerpilih,
-        siswaId,
-        status,
-        keterangan,
-        dibuatPada: new Date().toISOString(),
-      });
-    }
-    Store.set("absen", semua);
-  },
 
-  isiSemua(status) {
-    const siswa = Store.get("siswa");
-    siswa.forEach((s) => this.simpan(s.id, status, ""));
-    Utils.toast("Semua siswa ditandai " + status);
-    App.rerender();
-  },
 
   exportCsv() {
     const semua = Store.get("absen");

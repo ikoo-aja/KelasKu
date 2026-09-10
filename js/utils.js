@@ -100,6 +100,43 @@ const Utils = {
   tutupModal() {
     document.getElementById("modalRoot").classList.add("hidden");
     document.getElementById("modalBox").innerHTML = "";
+    Utils._konfirmasiCb = null;
+  },
+
+  /* Dialog konfirmasi custom (pengganti window.confirm — tanpa dialog bawaan browser) */
+  konfirmasi(opts) {
+    const {
+      pesan,
+      judul = "Konfirmasi",
+      tombolYa = "Ya",
+      tombolBatal = "Batal",
+      tipe = "default", /* "default" | "danger" */
+      onYa,
+      onBatal,
+    } = opts || {};
+    const icon = tipe === "danger" ? "fa-trash-can" : "fa-triangle-exclamation";
+    const btnYa = tipe === "danger" ? "btn-danger" : "btn-primary";
+    Utils.bukaModal(`
+      <div class="modal-konfirmasi">
+        <div class="modal-konfirmasi-icon ${tipe === "danger" ? "modal-konfirmasi-icon-danger" : ""}">
+          <i class="fa-solid ${icon}"></i>
+        </div>
+        <h3>${Utils.escapeHtml(judul)}</h3>
+        <p style="font-size:14px;line-height:1.55;margin:0">${pesan}</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" onclick="Utils.prosesKonfirmasi(false)">${Utils.escapeHtml(tombolBatal)}</button>
+          <button type="button" class="btn ${btnYa}" onclick="Utils.prosesKonfirmasi(true)">${Utils.escapeHtml(tombolYa)}</button>
+        </div>
+      </div>
+    `);
+    Utils._konfirmasiCb = { onYa, onBatal };
+  },
+
+  prosesKonfirmasi(ya) {
+    const cb = Utils._konfirmasiCb || {};
+    Utils.tutupModal();
+    if (ya) cb.onYa && cb.onYa();
+    else cb.onBatal && cb.onBatal();
   },
 
   /* ===== Tema terang / gelap ===== */
@@ -143,7 +180,10 @@ const Utils = {
   },
 };
 
-/* Tutup modal kalau klik backdrop */
-document.getElementById("modalBackdrop")?.addEventListener("click", () => Utils.tutupModal());
+/* Tutup modal kalau klik backdrop — konfirmasi yang terbuka dianggap dibatalkan */
+document.getElementById("modalBackdrop")?.addEventListener("click", () => {
+  if (Utils._konfirmasiCb) Utils.prosesKonfirmasi(false);
+  else Utils.tutupModal();
+});
 
 document.addEventListener("DOMContentLoaded", () => Utils.tema.init());

@@ -49,11 +49,28 @@ const Store = {
    Sumber data: "data siswa kelas xii rpl 1.xlsx" (36 siswa + wali kelas).
    Catatan: flag kelas_seeded baru di-set SETELAH hash password selesai,
    supaya kalau halaman ditutup sebelum hash selesai, seed jalan ulang dengan bersih.
-   Versi seed = "2" (biar browser yang pernah pakai seed lama ikut ke-update). */
+   Versi seed = "5" (role-based access: admin/walas/sekre/bendahara/murid). */
 (function seedData() {
-  if (localStorage.getItem("kelas_seeded") === "4") return;
+  /* Migrasi data lama: PR tanpa pemilik -> jadi milik admin (biar tetap kebaca) */
+  (function migrasiPr() {
+    const pr = Store.get("pr");
+    if (pr.some((p) => !p.pembuat)) {
+      pr.forEach((p) => {
+        if (!p.pembuat) p.pembuat = "u1";
+      });
+      Store.set("pr", pr);
+    }
+  })();
 
-  Promise.all([Utils.sha256("admin123"), Utils.sha256("walikelas123")]).then(([hashAdmin, hashWali]) => {
+  if (localStorage.getItem("kelas_seeded") === "6") return;
+
+  Promise.all([
+    Utils.sha256("admin123"),
+    Utils.sha256("walikelas123"),
+    Utils.sha256("sekre123"),
+    Utils.sha256("bendahara123"),
+    Utils.sha256("murid123"),
+  ]).then(([hashAdmin, hashWali, hashSekre, hashBendahara, hashMurid]) => {
     Store.set("info", {
       namaKelas: "XII Rekayasa Perangkat Lunak 1 (RPL 1)",
       namaSingkat: "XII RPL 1",
@@ -66,14 +83,35 @@ const Store = {
         nama: "Admin Kelas",
         username: "admin",
         passwordHash: hashAdmin,
-        role: "admin_guru",
+        role: "admin",
       },
       {
         id: "u2",
         nama: "Siti Aisyah, S.Ag",
         username: "walikelas",
         passwordHash: hashWali,
-        role: "admin_guru",
+        role: "walas",
+      },
+      {
+        id: "u3",
+        nama: "Sekretaris Kelas",
+        username: "sekre",
+        passwordHash: hashSekre,
+        role: "sekre",
+      },
+      {
+        id: "u4",
+        nama: "Bendahara Kelas",
+        username: "bendahara",
+        passwordHash: hashBendahara,
+        role: "bendahara",
+      },
+      {
+        id: "u5",
+        nama: "Murid (Contoh)",
+        username: "murid",
+        passwordHash: hashMurid,
+        role: "murid",
       },
     ]);
 
@@ -300,6 +338,61 @@ const Store = {
       .filter(Boolean);
     Store.set("kasMasuk", kasMasuk);
 
-    localStorage.setItem("kelas_seeded", "4");
+    /* Contoh PR & tugas (per akun: field pembuat = id user pemilik tugas) */
+    const tglN = (n) => {
+      const d = new Date();
+      d.setDate(d.getDate() + n);
+      return (
+        d.getFullYear() +
+        "-" +
+        String(d.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(d.getDate()).padStart(2, "0")
+      );
+    };
+    Store.set("pr", [
+      {
+        id: Utils.uid(),
+        mapelId: mapelId("Web + Aplikasi"),
+        judul: "Latihan membuat halaman web",
+        deskripsi: "Kerjakan latihan halaman 20–25, dikumpulkan saat jam pelajaran.",
+        tenggat: tglN(7),
+        status: "belum",
+        pembuat: "u2",
+        dibuatPada: new Date().toISOString(),
+      },
+      {
+        id: Utils.uid(),
+        mapelId: mapelId("Database"),
+        judul: "Baca modul Database bab 3",
+        deskripsi: "Baca & rangkum, siap untuk kuis pekan depan.",
+        tenggat: tglN(3),
+        status: "belum",
+        pembuat: "u3",
+        dibuatPada: new Date().toISOString(),
+      },
+      {
+        id: Utils.uid(),
+        mapelId: mapelId("Matematika"),
+        judul: "Latihan soal trigonometri",
+        deskripsi: "Nomor 1–10 halaman 45.",
+        tenggat: tglN(-2),
+        status: "selesai",
+        pembuat: "u5",
+        dibuatPada: new Date().toISOString(),
+      },
+      {
+        id: Utils.uid(),
+        mapelId: mapelId("Bahasa Indonesia"),
+        judul: "Membuat teks ulasan buku",
+        deskripsi: "Pilih satu buku, tulis ulasannya.",
+        tenggat: tglN(10),
+        status: "belum",
+        pembuat: "u1",
+        dibuatPada: new Date().toISOString(),
+      },
+    ]);
+
+    localStorage.setItem("kelas_seeded", "6");
   });
 })();

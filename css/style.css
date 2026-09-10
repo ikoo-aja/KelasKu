@@ -359,6 +359,7 @@ body {
 }
 .sidebar-nav a i { width: 20px; text-align: center; }
 .sidebar-nav a:hover { background: var(--bg); color: var(--text); }
+.sidebar-nav a.hidden { display: none; }
 .sidebar-nav a.active {
   background: var(--primary-soft);
   color: var(--primary);
@@ -380,6 +381,22 @@ body {
 }
 .user-nama { font-weight: 600; font-size: 14px; }
 .user-role { font-size: 12px; color: var(--text-muted); }
+
+/* Profil */
+.profil-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.avatar-lg {
+  width: 56px;
+  height: 56px;
+  font-size: 22px;
+}
+.badge-role {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
 
 .main {
   flex: 1;

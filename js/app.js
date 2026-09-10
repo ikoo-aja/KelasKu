@@ -8,6 +8,8 @@ const App = {
     pelajaran: { title: "Mata Pelajaran", modul: () => PelajaranPage },
     jadwal: { title: "Jadwal", modul: () => JadwalPage },
     pr: { title: "PR & Tugas", modul: () => PrPage },
+    pengingat: { title: "Pengingat Tugas", modul: () => PengingatPage },
+    profil: { title: "Profil", modul: () => ProfilPage },
   },
 
   init() {
@@ -72,7 +74,7 @@ const App = {
       return;
     }
     this.renderApp();
-    location.hash = "#/dashboard";
+    location.hash = "#/" + Auth.halamanDefault();
     this.route();
   },
 
@@ -103,7 +105,7 @@ const App = {
     document.getElementById("landingScreen").classList.add("hidden");
     document.getElementById("appShell").classList.remove("hidden");
     document.getElementById("userNama").textContent = user.nama;
-    document.getElementById("userRole").textContent = user.role === "admin_guru" ? "Admin / Guru" : "Siswa";
+    document.getElementById("userRole").textContent = Auth.labelRole(user.role);
     document.getElementById("userAvatar").textContent = user.nama.charAt(0).toUpperCase();
     /* nama kelas dari data */
     const info = Store.get("info", {});
@@ -117,8 +119,11 @@ const App = {
       this.renderLogin();
       return;
     }
-    const halaman = (location.hash.replace("#/", "") || "dashboard").split("?")[0];
-    if (!this.pages[halaman]) halaman = "dashboard";
+    let halaman = (location.hash.replace("#/", "") || "dashboard").split("?")[0];
+    /* guard: halaman tak dikenal atau tak diizinkan role -> kembali ke halaman default */
+    if (!this.pages[halaman] || !Auth.bolehHalaman(halaman)) {
+      halaman = Auth.halamanDefault();
+    }
     this.render(halaman);
   },
 
@@ -126,9 +131,11 @@ const App = {
     const conf = this.pages[halaman];
     document.getElementById("pageTitle").textContent = conf.title;
 
-    /* tandai menu aktif */
+    /* tampilkan menu sesuai role & tandai yang aktif */
     document.querySelectorAll("#sidebarNav a").forEach((a) => {
-      a.classList.toggle("active", a.dataset.page === halaman);
+      const on = Auth.bolehHalaman(a.dataset.page);
+      a.classList.toggle("hidden", !on);
+      a.classList.toggle("active", on && a.dataset.page === halaman);
     });
 
     /* render konten */
@@ -161,9 +168,9 @@ const App = {
     const absenHariIni = absen.filter((a) => a.tanggal === hariIni);
     const hadir = absenHariIni.filter((a) => a.status === "hadir").length;
 
-    /* PR belum selesai & terdekat */
+    /* PR belum selesai milikku & terdekat */
     const prAktif = pr
-      .filter((p) => p.status !== "selesai")
+      .filter((p) => p.pembuat === user.id && p.status !== "selesai")
       .sort((a, b) => (a.tenggat || "").localeCompare(b.tenggat || ""))
       .slice(0, 5);
 
@@ -192,7 +199,7 @@ const App = {
       <div class="stat-grid">
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-value">${siswa.length}</div><div class="stat-label">Total Siswa</div></div>
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value text-success">${hadir}</div><div class="stat-label">Hadir Hari Ini</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div><div class="stat-value text-warning">${pr.filter((p) => p.status !== "selesai").length}</div><div class="stat-label">PR Belum Selesai</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div><div class="stat-value text-warning">${pr.filter((p) => p.pembuat === user.id && p.status !== "selesai").length}</div><div class="stat-label">PR Belum Selesai</div></div>
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-building-columns"></i></div><div class="stat-value">${Utils.formatRupiah(saldo)}</div><div class="stat-label">Saldo Kas</div></div>
       </div>
 

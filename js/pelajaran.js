@@ -1,7 +1,7 @@
 /* ===== KelasKu — modul mata pelajaran ===== */
 const PelajaranPage = {
   render() {
-    const isAdmin = Auth.isAdmin();
+    const bisaEdit = Auth.boleh("pelajaran") === "edit";
     const mapel = Store.get("pelajaran").sort((a, b) =>
       a.namaMapel.localeCompare(b.namaMapel)
     );
@@ -9,11 +9,11 @@ const PelajaranPage = {
     return `
       <div class="section-head">
         <h3>Mata Pelajaran (${mapel.length})</h3>
-        ${isAdmin ? '<button class="btn btn-primary btn-sm" onclick="PelajaranPage.formTambah()">+ Tambah Mapel</button>' : ""}
+        ${bisaEdit ? '<button class="btn btn-primary btn-sm" onclick="PelajaranPage.formTambah()">+ Tambah Mapel</button>' : ""}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>No</th><th>Mata Pelajaran</th><th>Guru Pengajar</th>${isAdmin ? "<th>Aksi</th>" : ""}</tr></thead>
+          <thead><tr><th>No</th><th>Mata Pelajaran</th><th>Guru Pengajar</th>${bisaEdit ? "<th>Aksi</th>" : ""}</tr></thead>
           <tbody>
             ${
               mapel.length === 0
@@ -26,7 +26,7 @@ const PelajaranPage = {
                 <td><strong>${Utils.escapeHtml(m.namaMapel)}</strong></td>
                 <td>${Utils.escapeHtml(m.guruPengajar || "-")}</td>
                 ${
-                  isAdmin
+                  bisaEdit
                     ? `<td>
                   <button class="btn btn-sm btn-secondary" onclick="PelajaranPage.formEdit('${m.id}')">Edit</button>
                   <button class="btn btn-sm btn-danger" onclick="PelajaranPage.hapus('${m.id}')">Hapus</button>
@@ -89,9 +89,16 @@ const PelajaranPage = {
 
   hapus(id) {
     const m = Store.find("pelajaran", id);
-    if (!confirm(`Hapus mapel "${m?.namaMapel}"? Jadwal & PR terkait tidak ikut terhapus.`)) return;
-    Store.remove("pelajaran", id);
-    Utils.toast("Mapel dihapus");
-    App.rerender();
+    Utils.konfirmasi({
+      judul: "Hapus Mata Pelajaran",
+      pesan: `Hapus mapel <strong>"${Utils.escapeHtml(m?.namaMapel || "")}"</strong>?<br><span style="font-size:12.5px;opacity:.7">Jadwal & PR terkait tidak ikut terhapus.</span>`,
+      tipe: "danger",
+      tombolYa: "Ya, Hapus",
+      onYa: () => {
+        Store.remove("pelajaran", id);
+        Utils.toast("Mapel dihapus");
+        App.rerender();
+      },
+    });
   },
 };

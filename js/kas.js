@@ -19,10 +19,9 @@ const labelMinggu = (key) => {
 
 const KasPage = {
   render() {
-    const isAdmin = Auth.isAdmin();
+    const bisaEdit = Auth.boleh("kas") === "edit";
     const masuk = Store.get("kasMasuk");
     const keluar = Store.get("kasKeluar");
-    const pembayaran = Store.get("pembayaran");
     const siswa = Store.get("siswa");
 
     const totalMasuk = masuk.reduce((sum, t) => sum + Number(t.jumlah || 0), 0);
@@ -49,19 +48,16 @@ const KasPage = {
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-building-columns"></i></div><div class="stat-value">${Utils.formatRupiah(saldo)}</div><div class="stat-label">Saldo Kas</div></div>
       </div>
 
-      ${
-        isAdmin
-          ? `
       <div class="section-head">
         <h3>Transaksi Kas</h3>
-        <div>
+        ${bisaEdit ? `<div>
           <button class="btn btn-primary btn-sm" onclick="KasPage.formTransaksi('masuk')">+ Kas Masuk</button>
           <button class="btn btn-danger btn-sm" onclick="KasPage.formTransaksi('keluar')">+ Kas Keluar</button>
-        </div>
+        </div>` : ""}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Tanggal</th><th>Jenis</th><th>Deskripsi</th><th>Jumlah</th>${isAdmin ? "<th>Aksi</th>" : ""}</tr></thead>
+          <thead><tr><th>Tanggal</th><th>Jenis</th><th>Deskripsi</th><th>Jumlah</th>${bisaEdit ? "<th>Aksi</th>" : ""}</tr></thead>
           <tbody>
             ${
               [...masuk.map((t) => ({ ...t, _jenis: "masuk" })),
@@ -74,15 +70,11 @@ const KasPage = {
                 <td>${t._jenis === "masuk" ? '<span class="text-success">Masuk</span>' : '<span class="text-danger">Keluar</span>'}</td>
                 <td>${Utils.escapeHtml(t.deskripsi)}</td>
                 <td class="${t._jenis === "masuk" ? "text-success" : "text-danger"}">${Utils.formatRupiah(t.jumlah)}</td>
-                ${
-                  isAdmin
-                    ? `<td><button class="btn btn-sm btn-danger" onclick="KasPage.hapusTransaksi('${t._jenis}', '${t.id}')">Hapus</button></td>`
-                    : ""
-                }
+                ${bisaEdit ? `<td><button class="btn btn-sm btn-danger" onclick="KasPage.hapusTransaksi('${t._jenis}', '${t.id}')">Hapus</button></td>` : ""}
               </tr>`
                 )
                 .join("") ||
-              '<tr><td colspan="5" class="empty-row">Belum ada transaksi.</td></tr>'
+              '<tr><td colspan="' + (bisaEdit ? 5 : 4) + '" class="empty-row">Belum ada transaksi.</td></tr>'
             }
           </tbody>
         </table>
@@ -91,7 +83,7 @@ const KasPage = {
       <div class="card mt-16">
         <div class="section-head">
           <h3>Kas Personal Siswa</h3>
-          <button class="btn btn-sm btn-secondary" onclick="KasPage.formBayar()">+ Catat Pembayaran</button>
+          ${bisaEdit ? '<button class="btn btn-sm btn-secondary" onclick="KasPage.formBayar()">+ Catat Pembayaran</button>' : ""}
         </div>
         <p class="text-muted" style="font-size:13px;margin-bottom:10px">
           Tagihan kas: <strong>${Utils.formatRupiah(TAGIHAN_PER_MINGGU)}/minggu</strong> · Semester 1 (${MINGGU_SEMESTER.length} minggu × ${Utils.formatRupiah(TAGIHAN_PER_MINGGU)} = ${Utils.formatRupiah(TOTAL_TAGIHAN)})
@@ -167,13 +159,7 @@ const KasPage = {
             </tbody>
           </table>
         </div>
-      </div>`
-          : `
-      <div class="card">
-        <h3>Ringkasan Kas Kelas</h3>
-        <p class="text-muted">Saldo kas kelas saat ini: <strong>${Utils.formatRupiah(saldo)}</strong>. Detail transaksi hanya bisa dilihat admin.</p>
-      </div>`
-      }
+      </div>
     `;
   },
 
@@ -218,10 +204,17 @@ const KasPage = {
   },
 
   hapusTransaksi(jenis, id) {
-    if (!confirm("Hapus transaksi ini?")) return;
-    Store.remove(jenis === "masuk" ? "kasMasuk" : "kasKeluar", id);
-    Utils.toast("Transaksi dihapus");
-    App.rerender();
+    Utils.konfirmasi({
+      judul: "Hapus Transaksi",
+      pesan: "Hapus transaksi ini?",
+      tipe: "danger",
+      tombolYa: "Ya, Hapus",
+      onYa: () => {
+        Store.remove(jenis === "masuk" ? "kasMasuk" : "kasKeluar", id);
+        Utils.toast("Transaksi dihapus");
+        App.rerender();
+      },
+    });
   },
 
   formBayar() {

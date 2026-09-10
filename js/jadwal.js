@@ -3,7 +3,7 @@ const JADWAL_HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
 const JadwalPage = {
   render() {
-    const isAdmin = Auth.isAdmin();
+    const bisaEdit = Auth.boleh("jadwal") === "edit";
     const jadwal = Store.get("jadwal");
     const mapel = Store.get("pelajaran");
 
@@ -12,7 +12,7 @@ const JadwalPage = {
     return `
       <div class="section-head">
         <h3>Jadwal Pelajaran Mingguan</h3>
-        ${isAdmin ? '<button class="btn btn-primary btn-sm" onclick="JadwalPage.formTambah()">+ Tambah Jadwal</button>' : ""}
+        ${bisaEdit ? '<button class="btn btn-primary btn-sm" onclick="JadwalPage.formTambah()">+ Tambah Jadwal</button>' : ""}
       </div>
       ${
         mapel.length === 0
@@ -36,7 +36,7 @@ const JadwalPage = {
               <span class="jam">${j.jamMulai} – ${j.jamSelesai}${j.ruang ? " · " + Utils.escapeHtml(j.ruang) : ""}</span>
               ${guru ? `<span class="jam jadwal-guru"><i class="fa-solid fa-chalkboard-user"></i> ${Utils.escapeHtml(guru)}</span>` : ""}
               ${
-                isAdmin && !j.istirahat
+                bisaEdit && !j.istirahat
                   ? `<div style="margin-top:6px">
                 <button class="btn btn-sm btn-secondary" onclick="JadwalPage.formEdit('${j.id}')">Edit</button>
                 <button class="btn btn-sm btn-danger" onclick="JadwalPage.hapus('${j.id}')">Hapus</button>
@@ -124,9 +124,16 @@ const JadwalPage = {
   },
 
   hapus(id) {
-    if (!confirm("Hapus jadwal ini?")) return;
-    Store.remove("jadwal", id);
-    Utils.toast("Jadwal dihapus");
-    App.rerender();
+    Utils.konfirmasi({
+      judul: "Hapus Jadwal",
+      pesan: "Hapus jadwal ini?",
+      tipe: "danger",
+      tombolYa: "Ya, Hapus",
+      onYa: () => {
+        Store.remove("jadwal", id);
+        Utils.toast("Jadwal dihapus");
+        App.rerender();
+      },
+    });
   },
 };

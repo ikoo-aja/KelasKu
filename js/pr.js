@@ -1,8 +1,10 @@
-/* ===== KelasKu — modul PR & tugas ===== */
+/* ===== KelasKu — modul PR & tugas (per akun) =====
+   Setiap akun punya daftar tugasnya sendiri (field pembuat = id user).
+   Tugas dari akun lain tampil read-only di halaman "Pengingat Tugas". */
 const PrPage = {
   render() {
-    const isAdmin = Auth.isAdmin();
-    const pr = Store.get("pr");
+    const me = Auth.user();
+    const pr = Store.get("pr").filter((p) => p.pembuat === me.id);
     const mapel = Store.get("pelajaran");
     const hariIni = Utils.hariIni();
 
@@ -16,14 +18,18 @@ const PrPage = {
 
     return `
       <div class="section-head">
-        <h3>PR &amp; Tugas</h3>
-        ${isAdmin ? '<button class="btn btn-primary btn-sm" onclick="PrPage.formTambah()">+ Tambah PR</button>' : ""}
+        <h3>PR &amp; Tugas Saya (${pr.length})</h3>
+        <button class="btn btn-primary btn-sm" onclick="PrPage.formTambah()">+ Tambah PR</button>
       </div>
+      <p class="text-muted" style="font-size:13px;margin-bottom:14px">
+        Ini daftar tugas milikmu sendiri. Tugas dari akun lain bisa dilihat di menu
+        <strong>Pengingat Tugas</strong>.
+      </p>
       ${
         mapel.length === 0
           ? '<div class="card"><p class="text-muted">Tambahkan mata pelajaran dulu di menu Mata Pelajaran, lalu buat PR-nya.</p></div>'
           : pr.length === 0
-          ? '<div class="card"><p class="text-muted">Belum ada PR. Klik "+ Tambah PR" untuk menambahkan.</p></div>'
+          ? '<div class="card"><p class="text-muted">Belum ada PR-mu. Klik "+ Tambah PR" untuk menambahkan.</p></div>'
           : `
       <div class="pr-grid">
         ${urut
@@ -43,17 +49,13 @@ const PrPage = {
             </div>
             <div class="pr-meta"><i class="fa-solid fa-book-open"></i> ${Utils.escapeHtml(namaMapel(p.mapelId))} · <i class="fa-solid fa-calendar-days"></i> tenggat ${Utils.formatTanggal(p.tenggat)}</div>
             ${p.deskripsi ? `<div class="pr-desc">${Utils.escapeHtml(p.deskripsi)}</div>` : ""}
-            ${
-              isAdmin
-                ? `<div style="display:flex;gap:6px;flex-wrap:wrap">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
               <button class="btn btn-sm ${p.status === "selesai" ? "btn-secondary" : "btn-primary"}" onclick="PrPage.toggleStatus('${p.id}')">
                 ${p.status === "selesai" ? '<i class="fa-solid fa-rotate-left"></i> Batal selesai' : '<i class="fa-solid fa-check"></i> Tandai selesai'}
               </button>
               <button class="btn btn-sm btn-secondary" onclick="PrPage.formEdit('${p.id}')">Edit</button>
               <button class="btn btn-sm btn-danger" onclick="PrPage.hapus('${p.id}')">Hapus</button>
-            </div>`
-                : ""
-            }
+            </div>
           </div>`;
           })
           .join("")}
@@ -107,13 +109,14 @@ const PrPage = {
         deskripsi: fd.get("deskripsi").trim(),
         tenggat: fd.get("tenggat"),
         status: pr?.status || "belum",
+        pembuat: pr?.pembuat || Auth.user()?.id,
       };
       if (pr) {
         Store.update("pr", pr.id, data);
         Utils.toast("PR diperbarui");
       } else {
         Store.add("pr", data);
-        Utils.toast("PR ditambahkan");
+        Utils.toast("PR ditambahkan — akun lain bisa lihat di Pengingat Tugas");
       }
       Utils.tutupModal();
       App.rerender();
@@ -122,14 +125,24 @@ const PrPage = {
 
   toggleStatus(id) {
     const pr = Store.find("pr", id);
+    if (!pr || pr.pembuat !== Auth.user()?.id) return;
     Store.update("pr", id, { status: pr.status === "selesai" ? "belum" : "selesai" });
     App.rerender();
   },
 
   hapus(id) {
-    if (!confirm("Hapus PR ini?")) return;
-    Store.remove("pr", id);
-    Utils.toast("PR dihapus");
-    App.rerender();
+    const pr = Store.find("pr", id);
+    if (!pr || pr.pembuat !== Auth.user()?.id) return;
+    Utils.konfirmasi({
+      judul: "Hapus PR & Tugas",
+      pesan: "Hapus PR/tugas ini?",
+      tipe: "danger",
+      tombolYa: "Ya, Hapus",
+      onYa: () => {
+        Store.remove("pr", id);
+        Utils.toast("PR dihapus");
+        App.rerender();
+      },
+    });
   },
 };

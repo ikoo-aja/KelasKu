@@ -12,7 +12,7 @@ const Landing = {
   /* Tunggu seed selesai, lalu isi data live */
   muatData() {
     const cek = () => {
-      if (localStorage.getItem("kelas_seeded") === "4") {
+      if (localStorage.getItem("kelas_seeded") === "6") {
         try {
           this.isInfo();
           this.isChips();

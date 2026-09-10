@@ -1,81 +1,60 @@
-# 🎓 KelasKu — Aplikasi Kelas XII RPL 1
+# KelasKu — XII Rekayasa Perangkat Lunak 1
 
-Web app sederhana untuk mengelola kehidupan kelas: **kas, absensi, PR & tugas, jadwal, mata pelajaran, dan data siswa**. Dibuat dengan HTML + CSS + JavaScript murni (tanpa framework, tanpa build step) dan menyimpan data di **localStorage** browser.
+**KelasKu** adalah aplikasi web untuk membantu wali kelas dan pengurus kelas mengelola administrasi **XII Rekayasa Perangkat Lunak 1 (RPL 1)** — kehadiran siswa, tugas, jadwal pelajaran, dan data siswa — dari satu tempat.
 
-## ✨ Fitur
+Dibangun dengan **HTML, CSS, dan JavaScript murni**: cepat, ringan, tanpa instalasi, tanpa server, dan responsif di HP maupun laptop.
 
-- **Landing page** — hero animasi, statistik live dari data, marquee mapel, dan 6 kartu fitur
-- **Mode gelap / terang** — toggle di nav landing & topbar app (ikon ☾/☀), tersimpan di browser, ikut preferensi sistem saat pertama dibuka
-- **Login** — akun default: `admin` / `admin123` (admin kelas) dan `walikelas` / `walikelas123` (wali kelas), password di-hash SHA-256
-- **Seed data asli** — 36 siswa XII RPL 1 (NIS, NISN, L/P) + wali kelas **Siti Aisyah, S.Ag** dari file `data siswa kelas xii rpl 1.xlsx`
-- **Jadwal asli** — 12 mapel + guru pengajar, jadwal Senin–Jumat lengkap dengan jam istirahat (seed dari jadwal XII RPL 1)
-- **Dashboard** — ringkasan siswa, absen hari ini, PR terdekat, saldo kas, jadwal hari ini
-- **Data Siswa** — CRUD daftar siswa: NIS, NISN, jenis kelamin
-- **Absensi** — absen harian (hadir/sakit/izin/alpa), rekap 30 hari, **rekap per rentang tanggal** (per siswa + kehadiran %, tombol cepat 7/30 hari, export CSV)
-- **Kas Kelas** — transaksi masuk/keluar, saldo otomatis, kas personal **Rp5.000/minggu** (semester 1: 22 minggu = Rp110.000) + rekap matriks mingguan, export CSV
-- **Mata Pelajaran** — daftar mapel + guru pengajar
-- **Jadwal** — jadwal mingguan per hari (Senin–Jumat) dengan guru pengajar & jam istirahat
-- **PR & Tugas** — tugas per mapel dengan tenggat + status selesai
-- Responsif (mobile friendly), UI bahasa Indonesia
+## Tentang Aplikasi
 
-## 🚀 Menjalankan Lokal
+KelasKu merapikan administrasi kelas sehari-hari yang biasanya tercerai-berai:
 
-Cukup buka `index.html` di browser, atau jalankan server mini:
+- **Kehadiran siswa** — pencatatan absensi harian yang cepat, rapi, dan dapat diaudit
+- **PR & tugas** — setiap tugas tercatat per mata pelajaran beserta tenggatnya
+- **Jadwal pelajaran** — susunan jadwal mingguan lengkap dengan guru pengajar dan jam istirahat
+- **Data siswa** — data lengkap kelas (NIS, NISN, jenis kelamin) sebagai dasar semua modul
+- **Pemantauan harian** — dashboard ringkasan kondisi kelas hari ini
 
-```bash
-# Python
-python -m http.server 8080
+## Fitur Utama
 
-# atau Node
-npx serve .
-```
+| Modul | Fungsi |
+|---|---|
+| **Dashboard** | Ringkasan kelas hari ini: kehadiran, tugas, dan jadwal dalam satu layar |
+| **Data Siswa** | Data lengkap 36 siswa XII RPL 1 — NIS, NISN, jenis kelamin |
+| **Absensi** | Absen harian dengan alur cepat (tandai semua hadir → sesuaikan → konfirmasi sekali), lihat absen per tanggal, rekap per rentang tanggal, riwayat dengan log audit, ekspor CSV |
+| **Mata Pelajaran** | Daftar mata pelajaran beserta guru pengajar |
+| **Jadwal** | Jadwal Senin–Jumat lengkap dengan jam istirahat dan guru pengajar |
+| **PR & Tugas** | Daftar tugas pribadi per akun — tambah, tandai selesai, edit, dan hapus tugas sendiri |
+| **Pengingat Tugas** | Tugas yang dibuat akun lain tampil read-only sebagai pengingat bersama |
 
-Lalu buka `http://localhost:8080`.
+## Keunggulan
 
-> ⚠️ Data disimpan di localStorage browser — data di perangkat A tidak muncul di perangkat B.
+- **Antarmuka profesional** — tema terang & gelap yang dapat diganti, seluruhnya berbahasa Indonesia
+- **Cepat & ringan** — tanpa framework dan tanpa proses build
+- **Data tersimpan otomatis** di browser — tidak membutuhkan server
+- **Laporan** — ekspor rekap kehadiran ke file CSV
+- **Privasi** — seluruh data berada di perangkat pengguna
 
-## 🌐 Deploy Gratis
+## Teknologi
 
-### GitHub Pages
-1. Push semua file ke repo GitHub.
-2. Buka **Settings → Pages**.
-3. Source: `Deploy from a branch`, branch: `main`, folder: `/ (root)`.
-4. Save — situs live di `https://username.github.io/nama-repo/`.
+- HTML + CSS + JavaScript (ES6)
+- Penyimpanan data: localStorage browser
+- Ikon: Font Awesome
 
-### Vercel
-1. Import repo di [vercel.com](https://vercel.com) (atau drag & drop folder di `vercel.com/new`).
-2. Framework Preset: **Other** (tidak perlu build command).
-3. Deploy.
+## Pengguna & Hak Akses
 
-### Netlify
-1. Buka [app.netlify.com/drop](https://app.netlify.com/drop).
-2. Drag & drop folder project — selesai.
+KelasKu mendukung beberapa peran dengan hak akses berbeda:
 
-## 📁 Struktur
+| Peran | Hak Akses |
+|---|---|
+| **Admin Kelas** | Mengelola seluruh data: siswa, absensi, jadwal, mata pelajaran, dan PR & tugas |
+| **Wali Kelas** | Memantau seluruh modul dan ikut mengelola PR & tugas |
+| **Sekretaris** | Mengelola absensi, jadwal, mata pelajaran, data siswa, dan PR & tugas |
+| **Bendahara** | Mengelola administrasi kelas sesuai tanggung jawabnya, serta PR & tugas |
+| **Murid** | Melihat data siswa, jadwal, dan mata pelajaran, serta menambah dan menandai PR & tugas |
 
-```
-├── index.html          # SPA shell + login
-├── css/
-│   ├── style.css       # tema (terang/gelap via CSS vars) & layout
-│   ├── components.css  # tombol, form, modal, toast
-│   └── landing.css     # landing page (hero, animasi, fitur)
-├── js/
-│   ├── storage.js      # wrapper localStorage + seed data
-│   ├── utils.js        # helper (tanggal, rupiah, modal, toast)
-│   ├── auth.js         # login/session
-│   ├── siswa.js        # modul data siswa
-│   ├── absen.js        # modul absensi
-│   ├── kas.js          # modul kas kelas
-│   ├── pelajaran.js    # modul mapel
-│   ├── jadwal.js       # modul jadwal
-│   ├── pr.js           # modul PR & tugas
-│   ├── app.js          # router + dashboard
-│   └── landing.js      # interaktivitas landing page
-└── README.md
-```
+Setiap akun dapat mengubah **nama tampilan** dan **password** melalui menu **Profil**.
 
-## ⚠️ Catatan
+## Privasi Data
 
-- Login & data murni client-side — cocok untuk pemakaian internal kelas, bukan untuk data sensitif.
-- Ganti password admin: login → buka DevTools Console → ikuti petunjuk, atau minta fitur "ganti password" ditambahkan.
-- Menambah akun siswa: belum ada UI-nya — bisa ditambahkan sebagai pengembangan berikutnya.
+- Seluruh data tersimpan di browser masing-masing perangkat (localStorage) — tidak dikirim ke server mana pun.
+- Akses edit dibatasi sesuai peran agar administrasi tetap tertib.

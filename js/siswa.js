@@ -1,18 +1,18 @@
 /* ===== KelasKu — modul data siswa ===== */
 const SiswaPage = {
   render() {
-    const isAdmin = Auth.isAdmin();
+    const bisaEdit = Auth.boleh("siswa") === "edit";
     const siswa = Store.get("siswa").sort((a, b) => a.nama.localeCompare(b.nama));
 
     return `
       <div class="section-head">
         <h3>Daftar Siswa (${siswa.length})</h3>
-        ${isAdmin ? '<button class="btn btn-primary btn-sm" onclick="SiswaPage.formTambah()">+ Tambah Siswa</button>' : ""}
+        ${bisaEdit ? '<button class="btn btn-primary btn-sm" onclick="SiswaPage.formTambah()">+ Tambah Siswa</button>' : ""}
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>No</th><th>Nama</th><th>NIS</th><th>NISN</th><th>L/P</th>${isAdmin ? "<th>Aksi</th>" : ""}</tr>
+            <tr><th>No</th><th>Nama</th><th>NIS</th><th>NISN</th><th>L/P</th>${bisaEdit ? "<th>Aksi</th>" : ""}</tr>
           </thead>
           <tbody>
             ${
@@ -28,7 +28,7 @@ const SiswaPage = {
                 <td>${Utils.escapeHtml(s.nisn || "-")}</td>
                 <td>${s.jenisKelamin || "-"}</td>
                 ${
-                  isAdmin
+                  bisaEdit
                     ? `<td>
                   <button class="btn btn-sm btn-secondary" onclick="SiswaPage.formEdit('${s.id}')">Edit</button>
                   <button class="btn btn-sm btn-danger" onclick="SiswaPage.hapus('${s.id}')">Hapus</button>
@@ -105,9 +105,16 @@ const SiswaPage = {
 
   hapus(id) {
     const s = Store.find("siswa", id);
-    if (!confirm(`Hapus siswa "${s?.nama}"? Data absen/PR terkait tidak ikut terhapus.`)) return;
-    Store.remove("siswa", id);
-    Utils.toast("Siswa dihapus");
-    App.rerender();
+    Utils.konfirmasi({
+      judul: "Hapus Siswa",
+      pesan: `Hapus siswa <strong>"${Utils.escapeHtml(s?.nama || "")}"</strong>?<br><span style="font-size:12.5px;opacity:.7">Data absen & PR terkait tidak ikut terhapus.</span>`,
+      tipe: "danger",
+      tombolYa: "Ya, Hapus",
+      onYa: () => {
+        Store.remove("siswa", id);
+        Utils.toast("Siswa dihapus");
+        App.rerender();
+      },
+    });
   },
 };
