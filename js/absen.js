@@ -161,7 +161,7 @@ const AbsenPage = {
       <div class="card mt-16">
         <div class="section-head">
           <h3><i class="fa-solid fa-calendar-days"></i> Rekap Absen per Rentang Tanggal</h3>
-          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.exportRekapCsv()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.formEkspor()"><i class="fa-solid fa-file-export"></i> Ekspor</button>
         </div>
         <div class="absen-toolbar">
           <label class="text-muted">Dari:</label>
@@ -224,7 +224,7 @@ const AbsenPage = {
       <div class="card mt-16">
         <div class="section-head">
           <h3>Riwayat Absen (terbaru)</h3>
-          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.exportCsv()">Export CSV</button>
+          <button class="btn btn-sm btn-secondary" onclick="AbsenPage.formEkspor('riwayat')"><i class="fa-solid fa-file-export"></i> Ekspor</button>
         </div>
         <div class="table-wrap" style="box-shadow:none">
           <table>
@@ -480,8 +480,9 @@ const AbsenPage = {
     App.rerender();
   },
 
-  /* Hitung rekap per rentang tanggal (dipakai render & export) */
-  hitungRekapRentang() {
+  /* Hitung rekap per rentang tanggal (dipakai render & export).
+     Bisa diberi rentang khusus tanpa mengubah pilihan di halaman. */
+  hitungRekapRentang(dariOpsi, sampaiOpsi) {
     if (!this.rekapDari || !this.rekapSampai) {
       const d = new Date();
       d.setDate(d.getDate() - 7);
@@ -493,8 +494,8 @@ const AbsenPage = {
         String(d.getDate()).padStart(2, "0");
       this.rekapSampai = Utils.hariIni();
     }
-    let dari = this.rekapDari;
-    let sampai = this.rekapSampai;
+    let dari = dariOpsi || this.rekapDari;
+    let sampai = sampaiOpsi || this.rekapSampai;
     if (dari > sampai) [dari, sampai] = [sampai, dari];
     const siswa = Store.get("siswa").sort((a, b) => a.nama.localeCompare(b.nama));
     const absenRentang = Store.get("absen").filter(
@@ -554,8 +555,77 @@ const AbsenPage = {
     App.rerender();
   },
 
-  exportRekapCsv() {
+  /* ===== Ekspor rekap absen (gaya seragam dengan ekspor PR) ===== */
+  formEkspor(jenisAwal) {
     const rek = this.hitungRekapRentang();
+    Utils.bukaModal(`
+      <h3><i class="fa-solid fa-file-export"></i> Ekspor Rekap Absen</h3>
+      <p class="text-muted" style="font-size:12.5px;margin:-4px 0 12px">
+        Pilih data yang mau diunduh — hasilnya berkas CSV siap dibuka di Excel.
+      </p>
+      <div class="form-group">
+        <label>Jenis data</label>
+        <select id="absenEksporJenis" onchange="AbsenPage.gantiJenisEkspor()">
+          <option value="rekap">Rekap per siswa (rentang tanggal)</option>
+          <option value="harian">Rekap satu hari (semua siswa)</option>
+          <option value="riwayat">Riwayat absen lengkap</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label id="absenEksporLabelDari">Dari tanggal</label>
+          <input type="date" id="absenEksporDari" value="${rek.dari}" />
+        </div>
+        <div class="form-group" id="absenEksporWrapSampai">
+          <label>Sampai tanggal</label>
+          <input type="date" id="absenEksporSampai" value="${rek.sampai}" />
+        </div>
+      </div>
+      <p class="form-hint" id="absenEksporInfo"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="Utils.tutupModal()">Batal</button>
+        <button type="button" class="btn btn-primary" onclick="AbsenPage.unduhEkspor()"><i class="fa-solid fa-file-csv"></i> Unduh CSV</button>
+      </div>
+    `);
+    /* boleh dibuka langsung dengan jenis tertentu (mis. dari kartu Riwayat Absen) */
+    if (jenisAwal) {
+      const sel = document.getElementById("absenEksporJenis");
+      if (sel && sel.querySelector('option[value="' + jenisAwal + '"]')) sel.value = jenisAwal;
+    }
+    this.gantiJenisEkspor();
+  },
+
+  gantiJenisEkspor() {
+    const jenis = document.getElementById("absenEksporJenis")?.value || "rekap";
+    const wrapSampai = document.getElementById("absenEksporWrapSampai");
+    const labelDari = document.getElementById("absenEksporLabelDari");
+    const info = document.getElementById("absenEksporInfo");
+    if (!wrapSampai) return;
+    /* rekap harian cukup satu tanggal */
+    wrapSampai.classList.toggle("hidden", jenis === "harian");
+    labelDari.textContent = jenis === "harian" ? "Tanggal" : "Dari tanggal";
+    info.textContent =
+      jenis === "rekap"
+        ? "Hadir / Sakit / Izin / Alpa tiap siswa + persentase kehadiran pada rentang tanggal terpilih."
+        : jenis === "harian"
+        ? "Status seluruh siswa pada satu tanggal — termasuk yang belum tercatat."
+        : "Semua catatan absen pada rentang tanggal terpilih, urut paling baru.";
+  },
+
+  unduhEkspor() {
+    const jenis = document.getElementById("absenEksporJenis")?.value || "rekap";
+    let dari = document.getElementById("absenEksporDari")?.value || Utils.hariIni();
+    let sampai = document.getElementById("absenEksporSampai")?.value || Utils.hariIni();
+    if (jenis === "harian") sampai = dari;
+    if (dari > sampai) [dari, sampai] = [sampai, dari];
+
+    if (jenis === "rekap") this.exportRekapCsv(dari, sampai);
+    else if (jenis === "harian") this.exportHarianCsv(dari);
+    else this.exportRiwayatCsv(dari, sampai);
+  },
+
+  exportRekapCsv(dari, sampai) {
+    const rek = this.hitungRekapRentang(dari, sampai);
     const baris = [["Nama", "Hadir", "Sakit", "Izin", "Alpa", "Total", "Kehadiran %"]];
     rek.rows.forEach((r) =>
       baris.push([
@@ -577,20 +647,54 @@ const AbsenPage = {
       rek.tot.total,
       rek.tot.total ? Math.round((rek.tot.hadir / rek.tot.total) * 100) : 0,
     ]);
+    Utils.tutupModal();
     App.downloadCsv("rekap-absen-" + rek.dari + "-sd-" + rek.sampai + ".csv", baris);
+    Utils.toast("Rekap absen diekspor ke CSV");
   },
 
+  /* Status seluruh siswa pada satu tanggal */
+  exportHarianCsv(tanggal) {
+    const siswa = Store.get("siswa").sort((a, b) => a.nama.localeCompare(b.nama));
+    if (siswa.length === 0) return Utils.toast("Belum ada data siswa", "error");
+    const recs = Store.get("absen").filter((a) => a.tanggal === tanggal);
+    const baris = [["Tanggal", "Hari", "NIS", "Nama", "Status", "Keterangan"]];
+    siswa.forEach((s) => {
+      const r = recs.find((a) => a.siswaId === s.id);
+      baris.push([
+        tanggal,
+        Utils.namaHari(tanggal),
+        s.nis || "",
+        s.nama,
+        r ? r.status : "belum tercatat",
+        r?.keterangan || "",
+      ]);
+    });
+    Utils.tutupModal();
+    App.downloadCsv("absen-harian-" + tanggal + ".csv", baris);
+    Utils.toast("Absen " + Utils.formatTanggal(tanggal) + " diekspor ke CSV");
+  },
 
-
-  exportCsv() {
-    const semua = Store.get("absen");
-    if (semua.length === 0) return Utils.toast("Belum ada data absen", "error");
-    const baris = [["Tanggal", "Nama", "Status", "Keterangan"]];
+  /* Riwayat absen lengkap dalam rentang tanggal */
+  exportRiwayatCsv(dari, sampai) {
+    const semua = Store.get("absen").filter(
+      (a) => (!dari || a.tanggal >= dari) && (!sampai || a.tanggal <= sampai)
+    );
+    if (semua.length === 0) return Utils.toast("Belum ada catatan absen di rentang itu", "error");
+    const baris = [["Tanggal", "Hari", "NIS", "Nama", "Status", "Keterangan"]];
     [...semuaAbsen_sorted(semua)].forEach((a) => {
       const s = Store.find("siswa", a.siswaId);
-      baris.push([a.tanggal, s?.nama || "", a.status, a.keterangan || ""]);
+      baris.push([
+        a.tanggal,
+        Utils.namaHari(a.tanggal),
+        s?.nis || "",
+        s?.nama || "(siswa dihapus)",
+        a.status,
+        a.keterangan || "",
+      ]);
     });
-    App.downloadCsv("absen.csv", baris);
+    Utils.tutupModal();
+    App.downloadCsv("riwayat-absen-" + dari + "-sd-" + sampai + ".csv", baris);
+    Utils.toast(semua.length + " catatan absen diekspor ke CSV");
   },
 };
 

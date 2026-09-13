@@ -307,20 +307,6 @@ body {
   border-radius: 10px;
   text-align: left;
 }
-.login-hint {
-  margin-top: 24px;
-  font-size: 12.5px;
-  color: var(--text-muted);
-  background: var(--input-bg);
-  border: 1px dashed var(--primary-border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  line-height: 2;
-  text-align: left;
-}
-.login-hint strong { color: var(--text-med); }
-.login-hint b { color: var(--primary-deep); font-weight: 600; }
-
 /* ===== Layout ===== */
 .app-shell { display: flex; min-height: 100vh; }
 

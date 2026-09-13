@@ -92,6 +92,16 @@ const Utils = {
     setTimeout(() => el.remove(), 3000);
   },
 
+  /* Unduh teks (TXT) sebagai file — dipakai modul PR & ekspor lainnya */
+  unduhTeks(namaFile, isi) {
+    const blob = new Blob([isi], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = namaFile;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
+
   /* Modal sederhana: buka dengan HTML, tutup via tombol */
   bukaModal(html) {
     document.getElementById("modalBox").innerHTML = html;

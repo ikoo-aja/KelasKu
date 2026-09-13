@@ -1,4 +1,9 @@
 /* ===== KelasKu — wrapper localStorage ===== */
+/* Versi seed data bawaan. Seed HANYA mengisi data yang masih kosong — data yang
+   sudah pernah diisi pengguna tidak pernah ditimpa. Naikkan versi ini kalau ada
+   perubahan struktur data bawaan (data lama tetap aman). */
+const SEED_VERSION = "7";
+
 const Store = {
   get(key, fallback = []) {
     try {
@@ -38,10 +43,99 @@ const Store = {
     data[idx] = { ...data[idx], ...perubahan };
     return this.set(key, data) ? data[idx] : null;
   },
-  /* Hapus item berdasar id */
+  /* Hapus item berdasar id (otomatis dibuat cadangan dulu, biar bisa dikembalikan) */
   remove(key, id) {
-    const data = this.get(key).filter((item) => item.id !== id);
-    return this.set(key, data);
+    const data = this.get(key);
+    if (data.some((item) => item.id === id)) this.cadangkan("Sebelum menghapus data di " + key);
+    return this.set(key, data.filter((item) => item.id !== id));
+  },
+
+  /* Tulis data HANYA kalau belum ada isinya — dipakai seed biar data pengguna
+     yang sudah ada tidak pernah tertimpa. */
+  setJikaKosong(key, value) {
+    const lama = this.get(key);
+    const kosong =
+      lama === null ||
+      lama === undefined ||
+      lama === "" ||
+      (Array.isArray(lama) && lama.length === 0) ||
+      (typeof lama === "object" && !Array.isArray(lama) && Object.keys(lama).length === 0);
+    if (!kosong) return false;
+    return this.set(key, value);
+  },
+
+  /* ===== Cadangan (backup) & pemulihan data =====
+     Snapshot otomatis dibuat sebelum data dihapus atau sebelum aplikasi
+     diperbarui, supaya data yang salah/kepencet hapus bisa dikembalikan. */
+  KUNCI: [
+    "info", "users", "siswa", "pelajaran", "jadwal",
+    "kasMingguan", "kasMasuk", "kasKeluar", "pembayaran",
+    "absen", "log", "pr",
+  ],
+  CADANGAN_MAKS: 6,
+
+  cadangkan(alasan = "Cadangan manual") {
+    try {
+      const data = {};
+      this.KUNCI.forEach((k) => {
+        const raw = localStorage.getItem("kelas_" + k);
+        if (raw !== null) data[k] = raw;
+      });
+      const daftar = this.daftarCadangan();
+      const baru = {
+        id: Utils.uid(),
+        waktu: new Date().toISOString(),
+        alasan,
+        data,
+      };
+      daftar.unshift(baru);
+      localStorage.setItem(
+        "kelas_cadangan",
+        JSON.stringify(daftar.slice(0, this.CADANGAN_MAKS))
+      );
+      return baru;
+    } catch (e) {
+      console.error("Gagal membuat cadangan", e);
+      return null;
+    }
+  },
+
+  daftarCadangan() {
+    try {
+      const d = JSON.parse(localStorage.getItem("kelas_cadangan") || "[]");
+      return Array.isArray(d) ? d : [];
+    } catch {
+      return [];
+    }
+  },
+
+  hapusCadangan(id) {
+    const daftar = this.daftarCadangan().filter((c) => c.id !== id);
+    localStorage.setItem("kelas_cadangan", JSON.stringify(daftar));
+    return daftar;
+  },
+
+  /* Kembalikan seluruh data ke kondisi saat cadangan dibuat.
+     Catatan: data akun (users) tidak ikut dipulihkan supaya password & akun
+     yang sekarang tetap bisa dipakai. */
+  pulihkan(id) {
+    const cadangan = this.daftarCadangan().find((c) => c.id === id);
+    if (!cadangan) return false;
+    /* amankan kondisi sekarang dulu, biar pemulihan juga bisa dibatalkan */
+    this.cadangkan("Sebelum memulihkan cadangan");
+    try {
+      this.KUNCI.filter((k) => k !== "users").forEach((k) => {
+        if (Object.prototype.hasOwnProperty.call(cadangan.data, k)) {
+          localStorage.setItem("kelas_" + k, cadangan.data[k]);
+        } else {
+          localStorage.removeItem("kelas_" + k);
+        }
+      });
+      return true;
+    } catch (e) {
+      console.error("Gagal memulihkan cadangan", e);
+      return false;
+    }
   },
 };
 
@@ -51,6 +145,12 @@ const Store = {
    supaya kalau halaman ditutup sebelum hash selesai, seed jalan ulang dengan bersih.
    Versi seed = "5" (role-based access: admin/walas/sekre/bendahara/murid). */
 (function seedData() {
+  /* Cadangan otomatis sebelum aplikasi memperbarui/menulis data bawaan.
+     Data pengguna (PR, absen, kas, dll) tetap aman & bisa dipulihkan dari menu Profil. */
+  if (localStorage.getItem("kelas_seeded") !== SEED_VERSION) {
+    Store.cadangkan("Sebelum pembaruan aplikasi (seed v" + SEED_VERSION + ")");
+  }
+
   /* Migrasi data lama: PR tanpa pemilik -> jadi milik admin (biar tetap kebaca) */
   (function migrasiPr() {
     const pr = Store.get("pr");
@@ -62,7 +162,7 @@ const Store = {
     }
   })();
 
-  if (localStorage.getItem("kelas_seeded") === "6") return;
+  if (localStorage.getItem("kelas_seeded") === SEED_VERSION) return;
 
   Promise.all([
     Utils.sha256("admin123"),
@@ -71,13 +171,13 @@ const Store = {
     Utils.sha256("bendahara123"),
     Utils.sha256("murid123"),
   ]).then(([hashAdmin, hashWali, hashSekre, hashBendahara, hashMurid]) => {
-    Store.set("info", {
+    Store.setJikaKosong("info", {
       namaKelas: "XII Rekayasa Perangkat Lunak 1 (RPL 1)",
       namaSingkat: "XII RPL 1",
       waliKelas: "Siti Aisyah, S.Ag",
     });
 
-    Store.set("users", [
+    Store.setJikaKosong("users", [
       {
         id: "u1",
         nama: "Admin Kelas",
@@ -154,7 +254,7 @@ const Store = {
       ["11416", "0084343661", "RIO RIZQI SAPUTRA", "L"],
       ["11435", "0089838350", "SITI FATIMAH AZZAHRA", "P"],
     ];
-    Store.set(
+    Store.setJikaKosong(
       "siswa",
       dataSiswa.map(([nis, nisn, nama, jenisKelamin]) => ({
         id: Utils.uid(),
@@ -187,8 +287,11 @@ const Store = {
       guruPengajar,
       dibuatPada: new Date().toISOString(),
     }));
-    Store.set("pelajaran", mapel);
-    const mapelId = (nama) => mapel.find((m) => m.namaMapel === nama)?.id;
+    Store.setJikaKosong("pelajaran", mapel);
+    /* pakai data yang benar-benar tersimpan — biar rujukan id tetap valid walaupun
+       mapel sebenarnya sudah ada dari sebelumnya (tidak ikut di-seed ulang) */
+    const pelajaranTersimpan = Store.get("pelajaran");
+    const mapelId = (nama) => pelajaranTersimpan.find((m) => m.namaMapel === nama)?.id;
 
     /* Jadwal mingguan — dari data jadwal XII RPL 1.
        Entry istirahat (istirahat: true) tampil beda dan cuma sebagai info. */
@@ -244,7 +347,7 @@ const Store = {
     tambah("Jumat", "Database", "11:15", "15:00");
     istirahat("Jumat", "11:30", "12:30");
 
-    Store.set("jadwal", jadwal);
+    Store.setJikaKosong("jadwal", jadwal);
 
     /* ===== Kas mingguan semester 1 (2025) — dari UANG KAS XII RPL 1.xlsx =====
        Kode per minggu (22 char): 5=lunas Rp5.000, 3=sebagian Rp3.000, 1=sebagian Rp1.000,
@@ -317,9 +420,9 @@ const Store = {
         });
       }
     });
-    Store.set("kasMingguan", kasMingguan);
-    Store.set("pembayaran", []); // model tagihan bulanan lama diganti kas mingguan
-    Store.set("kasKeluar", []);
+    Store.setJikaKosong("kasMingguan", kasMingguan);
+    Store.setJikaKosong("pembayaran", []); // model tagihan bulanan lama diganti kas mingguan
+    Store.setJikaKosong("kasKeluar", []);
     /* kas masuk per minggu biar saldo sesuai pemasukan semester 1 */
     const pad = (n) => String(n).padStart(2, "0");
     const kasMasuk = mingguSemester
@@ -336,7 +439,7 @@ const Store = {
         };
       })
       .filter(Boolean);
-    Store.set("kasMasuk", kasMasuk);
+    Store.setJikaKosong("kasMasuk", kasMasuk);
 
     /* Contoh PR & tugas (per akun: field pembuat = id user pemilik tugas) */
     const tglN = (n) => {
@@ -350,7 +453,7 @@ const Store = {
         String(d.getDate()).padStart(2, "0")
       );
     };
-    Store.set("pr", [
+    Store.setJikaKosong("pr", [
       {
         id: Utils.uid(),
         mapelId: mapelId("Web + Aplikasi"),
@@ -393,6 +496,6 @@ const Store = {
       },
     ]);
 
-    localStorage.setItem("kelas_seeded", "6");
+    localStorage.setItem("kelas_seeded", SEED_VERSION);
   });
 })();

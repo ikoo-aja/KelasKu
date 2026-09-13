@@ -1,10 +1,12 @@
 /* ===== KelasKu — modul pengingat tugas (read-only) =====
-   Menampilkan PR & tugas yang dibuat akun lain, biar saling mengingatkan.
-   Tidak ada tombol aksi di halaman ini. */
+   Menampilkan PR & tugas milik akun lain yang MEMILIH untuk dibagikan
+   sebagai pengingat (field bagikan). Tidak ada tombol aksi di halaman ini. */
 const PengingatPage = {
   render() {
     const me = Auth.user();
-    const pr = Store.get("pr").filter((p) => p.pembuat && p.pembuat !== me.id);
+    const pr = Store.get("pr").filter(
+      (p) => p.pembuat && p.pembuat !== me.id && p.bagikan !== false
+    );
     const hariIni = Utils.hariIni();
 
     const namaMapel = (id) => Store.find("pelajaran", id)?.namaMapel || "(mapel dihapus)";
@@ -21,12 +23,12 @@ const PengingatPage = {
         <h3><i class="fa-solid fa-bell"></i> Pengingat Tugas (${pr.length})</h3>
       </div>
       <p class="text-muted" style="font-size:13.5px;margin-bottom:14px">
-        Tugas yang dibuat akun lain tampil di sini — biar saling ingat ada tugas.
+        Tugas yang dibagikan oleh akun lain tampil di sini — biar saling ingat ada tugas.
         Halaman ini hanya untuk dilihat.
       </p>
       ${
         urut.length === 0
-          ? '<div class="card"><p class="text-muted">Belum ada pengingat tugas dari akun lain.</p></div>'
+          ? '<div class="card"><p class="text-muted">Belum ada pengingat tugas dari akun lain. Tugas yang dibagikan akan muncul di sini.</p></div>'
           : `
       <div class="pr-grid">
         ${urut

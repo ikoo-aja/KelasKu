@@ -50,10 +50,15 @@ const KasPage = {
 
       <div class="section-head">
         <h3>Transaksi Kas</h3>
-        ${bisaEdit ? `<div>
-          <button class="btn btn-primary btn-sm" onclick="KasPage.formTransaksi('masuk')">+ Kas Masuk</button>
-          <button class="btn btn-danger btn-sm" onclick="KasPage.formTransaksi('keluar')">+ Kas Keluar</button>
-        </div>` : ""}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-secondary" onclick="KasPage.formEkspor()"><i class="fa-solid fa-file-export"></i> Ekspor</button>
+          ${
+            bisaEdit
+              ? `<button class="btn btn-primary btn-sm" onclick="KasPage.formTransaksi('masuk')">+ Kas Masuk</button>
+          <button class="btn btn-danger btn-sm" onclick="KasPage.formTransaksi('keluar')">+ Kas Keluar</button>`
+              : ""
+          }
+        </div>
       </div>
       <div class="table-wrap">
         <table>
@@ -161,6 +166,162 @@ const KasPage = {
         </div>
       </div>
     `;
+  },
+
+  /* ===== Ekspor data kas (gaya seragam dengan ekspor PR & absen) ===== */
+  formEkspor() {
+    Utils.bukaModal(`
+      <h3><i class="fa-solid fa-file-export"></i> Ekspor Data Kas</h3>
+      <p class="text-muted" style="font-size:12.5px;margin:-4px 0 12px">
+        Pilih data yang mau diunduh — hasilnya berkas CSV siap dibuka di Excel.
+      </p>
+      <div class="form-group">
+        <label>Jenis data</label>
+        <select id="kasEksporJenis" onchange="KasPage.gantiJenisEkspor()">
+          <option value="transaksi">Transaksi kas (masuk &amp; keluar)</option>
+          <option value="personal">Rekap kas per siswa</option>
+          <option value="mingguan">Rekap kas mingguan (matriks)</option>
+        </select>
+      </div>
+      <p class="form-hint" id="kasEksporInfo"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="Utils.tutupModal()">Batal</button>
+        <button type="button" class="btn btn-primary" onclick="KasPage.unduhEkspor()"><i class="fa-solid fa-file-csv"></i> Unduh CSV</button>
+      </div>
+    `);
+    this.gantiJenisEkspor();
+  },
+
+  gantiJenisEkspor() {
+    const jenis = document.getElementById("kasEksporJenis")?.value || "transaksi";
+    const info = document.getElementById("kasEksporInfo");
+    if (!info) return;
+    info.textContent =
+      jenis === "transaksi"
+        ? "Semua kas masuk & keluar beserta total dan saldo akhir."
+        : jenis === "personal"
+        ? "Jumlah yang sudah dibayar & sisa tagihan tiap siswa."
+        : "Status pembayaran tiap siswa per minggu, seperti tabel matriks mingguan.";
+  },
+
+  unduhEkspor() {
+    const jenis = document.getElementById("kasEksporJenis")?.value || "transaksi";
+    if (jenis === "transaksi") this.exportTransaksiCsv();
+    else if (jenis === "personal") this.exportPersonalCsv();
+    else this.exportMingguanCsv();
+  },
+
+  exportTransaksiCsv() {
+    const semua = [
+      ...Store.get("kasMasuk").map((t) => ({ ...t, _jenis: "Masuk" })),
+      ...Store.get("kasKeluar").map((t) => ({ ...t, _jenis: "Keluar" })),
+    ].sort((a, b) => (b.tanggal || "").localeCompare(a.tanggal || ""));
+    if (semua.length === 0) return Utils.toast("Belum ada transaksi kas", "error");
+
+    const totalMasuk = semua
+      .filter((t) => t._jenis === "Masuk")
+      .reduce((s, t) => s + Number(t.jumlah || 0), 0);
+    const totalKeluar = semua
+      .filter((t) => t._jenis === "Keluar")
+      .reduce((s, t) => s + Number(t.jumlah || 0), 0);
+
+    const baris = [["Tanggal", "Hari", "Jenis", "Deskripsi", "Jumlah"]];
+    semua.forEach((t) =>
+      baris.push([
+        t.tanggal || "",
+        t.tanggal ? Utils.namaHari(t.tanggal) : "",
+        t._jenis,
+        t.deskripsi || "",
+        Number(t.jumlah || 0),
+      ])
+    );
+    baris.push(["", "", "TOTAL MASUK", "", totalMasuk]);
+    baris.push(["", "", "TOTAL KELUAR", "", totalKeluar]);
+    baris.push(["", "", "SALDO AKHIR", "", totalMasuk - totalKeluar]);
+
+    Utils.tutupModal();
+    App.downloadCsv("kas-transaksi-" + Utils.hariIni() + ".csv", baris);
+    Utils.toast(semua.length + " transaksi diekspor ke CSV");
+  },
+
+  exportPersonalCsv() {
+    const siswa = Store.get("siswa");
+    if (siswa.length === 0) return Utils.toast("Belum ada data siswa", "error");
+    const dibayarOleh = {};
+    Store.get("kasMingguan").forEach((m) => {
+      if (m.status === "lunas" || m.status === "sebagian") {
+        dibayarOleh[m.siswaId] = (dibayarOleh[m.siswaId] || 0) + Number(m.nominal || 0);
+      }
+    });
+    const urut = siswa
+      .map((s) => {
+        const dibayar = dibayarOleh[s.id] || 0;
+        return { s, dibayar, sisa: TOTAL_TAGIHAN - dibayar };
+      })
+      .sort((a, b) => b.sisa - a.sisa);
+
+    const baris = [["Nama", "NIS", "Dibayar", "Sisa", "Status"]];
+    urut.forEach((r) =>
+      baris.push([
+        r.s.nama,
+        r.s.nis || "",
+        r.dibayar,
+        r.sisa,
+        r.sisa <= 0 ? "Lunas" : "Belum Lunas",
+      ])
+    );
+    baris.push([
+      "TOTAL",
+      "",
+      urut.reduce((s, r) => s + r.dibayar, 0),
+      urut.reduce((s, r) => s + r.sisa, 0),
+      "",
+    ]);
+
+    Utils.tutupModal();
+    App.downloadCsv("kas-per-siswa-" + Utils.hariIni() + ".csv", baris);
+    Utils.toast(siswa.length + " baris rekap kas diekspor ke CSV");
+  },
+
+  exportMingguanCsv() {
+    const siswa = Store.get("siswa");
+    const mingguan = Store.get("kasMingguan");
+    if (siswa.length === 0 || mingguan.length === 0) {
+      return Utils.toast("Belum ada data kas mingguan", "error");
+    }
+
+    const baris = [
+      [
+        "Nama",
+        "NIS",
+        ...MINGGU_SEMESTER.map(([b, k]) => "Minggu " + k + " " + b),
+        "Dibayar",
+        "Sisa",
+      ],
+    ];
+    siswa.forEach((s) => {
+      const cell = {};
+      mingguan.filter((m) => m.siswaId === s.id).forEach((m) => (cell[m.minggu] = m));
+      let dibayar = 0;
+      const kolom = MINGGU_SEMESTER.map(([b, k]) => {
+        const rec = cell[mingguKey(b, k)];
+        if (!rec || rec.status === "kosong") return "-";
+        if (rec.status === "lunas") {
+          dibayar += Number(rec.nominal || 0);
+          return "Lunas";
+        }
+        if (rec.status === "sebagian") {
+          dibayar += Number(rec.nominal || 0);
+          return "Sebagian " + Number(rec.nominal || 0);
+        }
+        return "Belum";
+      });
+      baris.push([s.nama, s.nis || "", ...kolom, dibayar, TOTAL_TAGIHAN - dibayar]);
+    });
+
+    Utils.tutupModal();
+    App.downloadCsv("kas-mingguan-semester-1-" + Utils.hariIni() + ".csv", baris);
+    Utils.toast(siswa.length + " baris matriks kas diekspor ke CSV");
   },
 
   formTransaksi(jenis) {

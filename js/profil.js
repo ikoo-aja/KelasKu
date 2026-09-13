@@ -56,7 +56,95 @@ const ProfilPage = {
           </div>
         </form>
       </div>
+      ${Auth.isAdmin() ? this.kartuCadangan() : ""}
     `;
+  },
+
+  /* Kartu cadangan & pemulihan data (khusus admin) — biar data yang keliru
+     terhapus masih bisa dikembalikan */
+  kartuCadangan() {
+    const daftar = Store.daftarCadangan();
+    const hitung = (c) =>
+      Object.values(c.data).reduce((s, raw) => {
+        try {
+          const v = JSON.parse(raw);
+          return s + (Array.isArray(v) ? v.length : 1);
+        } catch {
+          return s + 1;
+        }
+      }, 0);
+    return `
+      <div class="card" style="margin-top:18px">
+        <div class="section-head" style="margin-bottom:10px">
+          <h4 style="margin:0;font-size:16px"><i class="fa-solid fa-clock-rotate-left"></i> Cadangan &amp; Pemulihan Data</h4>
+          <button class="btn btn-secondary btn-sm" onclick="ProfilPage.buatCadangan()"><i class="fa-solid fa-plus"></i> Buat Cadangan</button>
+        </div>
+        <p class="text-muted" style="font-size:12.5px;margin:0 0 12px">
+          Cadangan dibuat otomatis setiap kali data dihapus atau aplikasi diperbarui — maksimal
+          ${Store.CADANGAN_MAKS} cadangan terakhir. Memulihkan cadangan tidak mengubah data akun &amp; password.
+        </p>
+        ${
+          daftar.length === 0
+            ? '<p class="text-muted" style="font-size:13px">Belum ada cadangan.</p>'
+            : daftar
+                .map(
+                  (c) => `
+          <div class="cadangan-item">
+            <div>
+              <strong>${Utils.formatWaktu(c.waktu)}</strong>
+              <span class="text-muted">${Utils.escapeHtml(c.alasan)} · ${hitung(c)} data</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-secondary" onclick="ProfilPage.pulihkan('${c.id}')"><i class="fa-solid fa-rotate-left"></i> Pulihkan</button>
+              <button class="btn btn-sm btn-danger" onclick="ProfilPage.hapusCadangan('${c.id}')" title="Hapus cadangan"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </div>`
+                )
+                .join("")
+        }
+      </div>
+    `;
+  },
+
+  buatCadangan() {
+    if (!Store.cadangkan("Cadangan manual")) return Utils.toast("Gagal membuat cadangan", "error");
+    Utils.toast("Cadangan dibuat");
+    App.renderApp();
+  },
+
+  pulihkan(id) {
+    const c = Store.daftarCadangan().find((x) => x.id === id);
+    if (!c) return;
+    Utils.konfirmasi({
+      judul: "Pulihkan Cadangan",
+      pesan:
+        "Data akan dikembalikan ke kondisi <b>" +
+        Utils.formatWaktu(c.waktu) +
+        "</b> (" +
+        Utils.escapeHtml(c.alasan) +
+        ").<br><br>Data yang sekarang otomatis dicadangkan lebih dulu, jadi masih bisa dibatalkan.",
+      tombolYa: "Ya, Pulihkan",
+      onYa: () => {
+        if (!Store.pulihkan(id)) return Utils.toast("Gagal memulihkan data", "error");
+        Utils.tutupModal();
+        Utils.toast("Data berhasil dipulihkan");
+        App.renderApp();
+      },
+    });
+  },
+
+  hapusCadangan(id) {
+    Utils.konfirmasi({
+      judul: "Hapus Cadangan",
+      pesan: "Hapus cadangan ini? Tindakan ini tidak bisa dibatalkan.",
+      tipe: "danger",
+      tombolYa: "Ya, Hapus",
+      onYa: () => {
+        Store.hapusCadangan(id);
+        Utils.toast("Cadangan dihapus");
+        App.renderApp();
+      },
+    });
   },
 
   /* Blind eye: lihat/sembunyikan password di kolom profil */
